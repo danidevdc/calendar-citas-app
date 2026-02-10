@@ -27,12 +27,23 @@ class CalendarManager {
             headerToolbar: false, // Usamos nuestros propios controles
             height: 'auto',
             contentHeight: 'auto',
+            // Configuración de horario para vista semanal
+            slotMinTime: '08:00:00',
+            slotMaxTime: '17:00:00',
+            slotDuration: '00:30:00',
+            slotLabelInterval: '01:00',
+            slotLabelFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
             events: (info, successCallback, failureCallback) => {
                 const events = this.formatEventsForCalendar(this.citas);
                 successCallback(events);
             },
             eventClick: (info) => this.handleEventClick(info),
             dateClick: (info) => this.handleDateClick(info),
+            dayCellClassNames: (info) => this.getDayCellClasses(info),
             dayCellDidMount: (info) => this.styleDayCell(info),
             datesSet: (info) => this.updateMonthYearDisplay(info),
         });
@@ -131,6 +142,27 @@ class CalendarManager {
     }
 
     // ===== ESTILOS DE CELDAS =====
+    getDayCellClasses(info) {
+        const classes = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const cellDate = new Date(info.date);
+        cellDate.setHours(0, 0, 0, 0);
+        
+        // Marcar días pasados
+        if (cellDate < today && !info.isToday) {
+            classes.push('fc-day-past');
+        }
+        
+        // Marcar días feriados
+        if (typeof isHoliday === 'function' && isHoliday(cellDate)) {
+            classes.push('fc-day-holiday');
+        }
+        
+        return classes;
+    }
+
     styleDayCell(info) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -163,12 +195,19 @@ class CalendarManager {
     // ===== ACTUALIZAR DISPLAY DE MES Y AÑO =====
     updateMonthYearDisplay(info) {
         const monthYear = document.getElementById('monthYear');
+        
+        // Usar la fecha del centro del rango visible para asegurar el mes correcto
+        const startTime = info.start.getTime();
+        const endTime = info.end.getTime();
+        const middleTime = startTime + (endTime - startTime) / 2;
+        const middleDate = new Date(middleTime);
+        
         const formatter = new Intl.DateTimeFormat('es-ES', { 
             month: 'long', 
             year: 'numeric' 
         });
-        monthYear.textContent = formatter.format(info.start).charAt(0).toUpperCase() + 
-                                formatter.format(info.start).slice(1);
+        const formattedDate = formatter.format(middleDate);
+        monthYear.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
     }
 
     // ===== SETUP DE LISTENERS =====

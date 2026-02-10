@@ -12,21 +12,17 @@
 const HOLIDAYS = [
     // Año Nuevo
     '01-01',
-    
-    // Día de Reyes
-    '01-06',
-    
+  
     // Día del Trabajo
     '05-01',
     
     // Navidad
     '12-25',
     
-    // Año Nuevo Eve
-    '12-31',
     
     // Ejemplos de fechas específicas (descomenta para usar):
-    // '2026-03-15', // Ejemplo: Fecha específica
+    '02-16', // Ejemplo: Fecha específica
+    '02-17', // Ejemplo: Fecha específica
     // '2026-07-04', // Ejemplo: 4 de Julio (USA)
 ];
 
@@ -59,9 +55,10 @@ function getHolidayName(date) {
     const holidayNames = {
         '01-01': 'Año Nuevo',
         '01-06': 'Día de Reyes',
+        '16-02': 'Carnaval',
+        '17-02': 'Carnaval',
         '05-01': 'Día del Trabajo',
         '12-25': 'Navidad',
-        '12-31': 'Nochevieja',
     };
     
     return holidayNames[shortDate] || 'Día Feriado';
