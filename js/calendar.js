@@ -23,6 +23,7 @@ class CalendarManager {
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: this.currentView,
             locale: 'es',
+            firstDay: 0, // Comenzar la semana en domingo
             headerToolbar: false, // Usamos nuestros propios controles
             height: 'auto',
             contentHeight: 'auto',
@@ -47,9 +48,12 @@ class CalendarManager {
             const startTime = new Date(year, month - 1, day, hour, minute);
             const endTime = new Date(startTime.getTime() + cita.duracion * 60000);
 
+            // Mostrar nombre completo en el calendario
+            const nombreCompleto = cita.apellido ? `${cita.paciente} ${cita.apellido}` : cita.paciente;
+
             return {
                 id: cita.id,
-                title: `${cita.paciente} (${cita.tipo})`,
+                title: `${nombreCompleto} (${cita.tipo})`,
                 start: startTime.toISOString(),
                 end: endTime.toISOString(),
                 backgroundColor: this.getColorByType(cita.tipo),
@@ -89,6 +93,7 @@ class CalendarManager {
 
             document.getElementById('citaDate').value = info.dateStr;
             document.getElementById('citaTime').value = '09:00';
+            document.getElementById('citaDuration').value = '45';
             document.getElementById('deleteCitaBtn').style.display = 'none';
 
             modal.classList.add('active');
@@ -105,6 +110,8 @@ class CalendarManager {
         if (cita) {
             title.textContent = 'Editar Cita';
             document.getElementById('pacienteName').value = cita.paciente;
+            document.getElementById('pacienteApellido').value = cita.apellido || '';
+            document.getElementById('pacienteCarrera').value = cita.carrera || '';
             document.getElementById('citaDate').value = cita.fecha;
             document.getElementById('citaTime').value = cita.hora;
             document.getElementById('citaDuration').value = cita.duracion;
@@ -115,7 +122,7 @@ class CalendarManager {
             title.textContent = 'Nueva Cita';
             form.reset();
             document.getElementById('citaTime').value = '09:00';
-            document.getElementById('citaDuration').value = '60';
+            document.getElementById('citaDuration').value = '45';
             deleteBtn.style.display = 'none';
             this.editingCita = null;
         }
@@ -125,8 +132,31 @@ class CalendarManager {
 
     // ===== ESTILOS DE CELDAS =====
     styleDayCell(info) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const cellDate = new Date(info.date);
+        cellDate.setHours(0, 0, 0, 0);
+        
+        // Marcar día actual
         if (info.isToday) {
             info.el.classList.add('fc-day-today');
+        }
+        
+        // Marcar días pasados
+        if (cellDate < today) {
+            info.el.classList.add('fc-day-past');
+        }
+        
+        // Marcar días feriados (si la función existe)
+        if (typeof isHoliday === 'function' && isHoliday(cellDate)) {
+            info.el.classList.add('fc-day-holiday');
+            
+            // Agregar tooltip opcional con el nombre del feriado
+            if (typeof getHolidayName === 'function') {
+                const holidayName = getHolidayName(cellDate);
+                info.el.title = holidayName;
+            }
         }
     }
 
@@ -213,20 +243,24 @@ class CalendarManager {
     // ===== GUARDAR CITA =====
     async saveCita() {
         const paciente = document.getElementById('pacienteName').value.trim();
+        const apellido = document.getElementById('pacienteApellido').value.trim();
+        const carrera = document.getElementById('pacienteCarrera').value.trim();
         const fecha = document.getElementById('citaDate').value;
         const hora = document.getElementById('citaTime').value;
         const duracion = parseInt(document.getElementById('citaDuration').value);
         const tipo = document.getElementById('citaTipo').value;
         const notas = document.getElementById('citaNotas').value.trim();
 
-        if (!paciente || !fecha || !hora) {
-            showToast('Por favor completa los campos requeridos', 'error');
+        if (!paciente || !apellido || !carrera || !fecha || !hora) {
+            showToast('Por favor completa todos los campos obligatorios (Nombre, Apellido, Carrera, Fecha y Hora)', 'error');
             return;
         }
 
         const cita = {
             id: this.editingCita?.id || `cita_${Date.now()}`,
             paciente,
+            apellido,
+            carrera,
             fecha,
             hora,
             duracion,
