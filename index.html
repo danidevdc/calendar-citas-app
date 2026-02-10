@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Citas - Consulta Psicológica</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- MODAL DE AUTENTICACIÓN -->
+    <div id="authModal" class="modal active">
+        <div class="modal-content auth-box">
+            <h1><i class="fas fa-lock"></i> Acceso Restringido</h1>
+            <p>Ingresa la contraseña para gestionar las citas</p>
+            <input 
+                type="password" 
+                id="passwordInput" 
+                placeholder="Contraseña" 
+                class="password-input"
+                autocomplete="off"
+            >
+            <button id="loginBtn" class="btn btn-primary">Ingresar</button>
+            <p id="errorMsg" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="appContainer" class="app-hidden">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-calendar-alt"></i> Citas - Consulta Psicológica</h1>
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTROLES -->
+        <div class="controls">
+            <div class="view-toggle">
+                <button id="monthViewBtn" class="view-btn active" title="Vista Mes">
+                    <i class="fas fa-calendar-grid"></i> Mes
+                </button>
+                <button id="weekViewBtn" class="view-btn" title="Vista Semana">
+                    <i class="fas fa-calendar-week"></i> Semana
+                </button>
+            </div>
+
+            <div class="actions">
+                <button id="todayBtn" class="btn btn-info">
+                    <i class="fas fa-calendar-check"></i> Hoy
+                </button>
+                <button id="prevBtn" class="btn btn-nav">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="nextBtn" class="btn btn-nav">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span id="monthYear" class="month-year"></span>
+            </div>
+
+            <button id="addCitaBtn" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nueva Cita
+            </button>
+        </div>
+
+        <!-- CALENDARIO -->
+        <div class="calendar-container">
+            <div id="calendar"></div>
+        </div>
+
+        <!-- ESTADO DE SINCRONIZACIÓN -->
+        <div id="syncStatus" class="sync-status">
+            <span id="syncText">Último sincronizado: hace 1 minuto</span>
+        </div>
+    </div>
+
+    <!-- MODAL PARA CREAR/EDITAR CITA -->
+    <div id="citaModal" class="modal">
+        <div class="modal-content cita-form-box">
+            <div class="modal-header">
+                <h2 id="citaTitle">Nueva Cita</h2>
+                <button class="close-btn" id="closeCitaBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="citaForm" class="cita-form">
+                <div class="form-group">
+                    <label for="pacienteName">Nombre del Paciente</label>
+                    <input 
+                        type="text" 
+                        id="pacienteName" 
+                        placeholder="Ej: Juan Pérez"
+                        required
+                    >
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="citaDate">Fecha</label>
+                        <input type="date" id="citaDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="citaTime">Hora</label>
+                        <input type="time" id="citaTime" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="citaDuration">Duración (minutos)</label>
+                    <input 
+                        type="number" 
+                        id="citaDuration" 
+                        value="60" 
+                        min="15"
+                        step="15"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="citaNotas">Notas (opcional)</label>
+                    <textarea 
+                        id="citaNotas" 
+                        placeholder="Ej: Primera sesión, seguimiento..."
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="citaTipo">Tipo de Sesión</label>
+                    <select id="citaTipo">
+                        <option value="presencial">Presencial</option>
+                        <option value="virtual">Virtual</option>
+                        <option value="telefonica">Telefónica</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="deleteCitaBtn" class="btn btn-danger" style="display: none;">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="cancelCitaBtn">Cancelar</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Guardar Cita
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div id="toast" class="toast"></div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://apis.google.com/js/client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sheets-api.js"></script>
+    <script src="js/calendar.js"></script>
+</body>
+</html>
