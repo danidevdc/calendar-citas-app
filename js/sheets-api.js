@@ -3,13 +3,13 @@
 class SheetsAPIManager {
     constructor() {
         // IMPORTANTE: Reemplaza estos valores con los tuyos
-        this.SHEET_ID = 'TU_SHEET_ID_AQUI'; // ID de tu Google Sheet
-        this.API_KEY = 'TU_API_KEY_AQUI'; // API Key de Google
+        this.SHEET_ID = '1THx5FOoMbZWd0QeflmCwmiwnKX5OVPdFp6y9T2HBzyk'; // ID de tu Google Sheet
+        this.API_KEY = 'AIzaSyDlZdlgLrSeDJYYE5VrxVfZETkaG3XpLq8'; // API Key de Google
         this.RANGE = 'Citas!A2:F1000'; // Rango de celdas
         this.citas = [];
         
         // Google Apps Script URL (opcional pero recomendado)
-        this.APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL_AQUI';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzEYotopJwGW6s5EkDuWSrCg1c3H6Pc4H_rumSfMsJAnLjpz-4sTws-R5rxm9U2vy-sWA/exec';
         
         this.init();
     }
@@ -73,6 +73,11 @@ class SheetsAPIManager {
 
             this.citas.push(cita);
             window.calendarManager?.updateCalendar(this.citas);
+            
+            // Celebrar con confetti
+            if (typeof window.celebrateSuccess === 'function') {
+                window.celebrateSuccess();
+            }
 
             return true;
         } catch (error) {
@@ -109,6 +114,12 @@ class SheetsAPIManager {
                 this.citas.push(cita);
                 window.calendarManager?.updateCalendar(this.citas);
                 showToast('Cita guardada correctamente', 'success');
+                
+                // Celebrar con confetti
+                if (typeof window.celebrateSuccess === 'function') {
+                    window.celebrateSuccess();
+                }
+                
                 return true;
             } else {
                 showToast('Error al guardar: ' + (data.error || 'Desconocido'), 'error');

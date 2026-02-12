@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Citas - Consulta Psicológica</title>
     <link rel="icon" type="image/jpeg" href="photo_2026-02-10_13-34-05.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
@@ -48,28 +51,28 @@
         <!-- CONTROLES -->
         <div class="controls">
             <div class="view-toggle">
-                <button id="monthViewBtn" class="view-btn active" title="Vista Mes">
+                <button id="monthViewBtn" class="view-btn active" data-tooltip="Vista mensual">
                     <i class="fas fa-calendar-grid"></i> Mes
                 </button>
-                <button id="weekViewBtn" class="view-btn" title="Vista Semana">
+                <button id="weekViewBtn" class="view-btn" data-tooltip="Vista semanal">
                     <i class="fas fa-calendar-week"></i> Semana
                 </button>
             </div>
 
             <div class="actions">
-                <button id="todayBtn" class="btn btn-info">
+                <button id="todayBtn" class="btn btn-info" data-tooltip="Ir a hoy">
                     <i class="fas fa-calendar-check"></i> Hoy
                 </button>
-                <button id="prevBtn" class="btn btn-nav">
+                <button id="prevBtn" class="btn btn-nav" data-tooltip="Mes anterior">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button id="nextBtn" class="btn btn-nav">
+                <button id="nextBtn" class="btn btn-nav" data-tooltip="Mes siguiente">
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 <span id="monthYear" class="month-year"></span>
             </div>
 
-            <button id="addCitaBtn" class="btn btn-success">
+            <button id="addCitaBtn" class="btn btn-success" data-tooltip="Agregar nueva cita">
                 <i class="fas fa-plus"></i> Nueva Cita
             </button>
         </div>
@@ -153,9 +156,9 @@
                     <div class="form-group">
                         <label for="citaTipo">Tipo de Sesión</label>
                         <select id="citaTipo">
-                            <option value="presencial">Presencial</option>
-                            <option value="virtual">Virtual</option>
-                            <option value="telefonica">Telefónica</option>
+                            <option value="presencial">🏢 Presencial</option>
+                            <option value="virtual">💻 Virtual</option>
+                            <option value="telefonica">📞 Telefónica</option>
                         </select>
                     </div>
                 </div>
@@ -187,9 +190,13 @@
     <!-- TOAST DE NOTIFICACIONES -->
     <div id="toast" class="toast"></div>
 
+    <!-- CANVAS PARA CONFETTI -->
+    <canvas id="confettiCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
+
     <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://apis.google.com/js/client.js"></script>
+    <script src="js/confetti.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/sheets-api.js"></script>
     <script src="js/holidays.js"></script>

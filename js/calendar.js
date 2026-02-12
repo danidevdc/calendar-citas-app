@@ -139,6 +139,16 @@ class CalendarManager {
         }
 
         modal.classList.add('active');
+        
+        // Detectar si el modal tiene contenido que necesita scroll
+        setTimeout(() => {
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent.scrollHeight > modalContent.clientHeight) {
+                modalContent.classList.add('has-scroll');
+            } else {
+                modalContent.classList.remove('has-scroll');
+            }
+        }, 100);
     }
 
     // ===== ESTILOS DE CELDAS =====

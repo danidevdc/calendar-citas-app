@@ -7,6 +7,7 @@ Aplicación web para gestionar citas de pacientes con sincronización a Google S
 - 📆 **Vistas de Calendario**: Mes y semana
 - 🔐 **Autenticación**: Contraseña personalizada
 - 📊 **Integración Google Sheets**: Sincronización automática
+- 🎯 **Días Feriados**: Sistema configurable de días no laborables
 - 💅 **Interfaz Moderna**: Diseño responsivo y atractivo
 - 🚀 **Deploy en GitHub Pages**: Hosting gratuito
 - 📱 **Responsive**: Funciona en móvil, tablet y desktop
@@ -122,18 +123,39 @@ this.APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL_AQUI';
 
 ```
 calendar-citas-app/
-├── index.html          # HTML principal
+├── index.html                    # HTML principal
+├── CONFIGURACION_FERIADOS.md     # Guía de configuración de feriados
+├── README.md                     # Este archivo
 ├── css/
-│   └── styles.css      # Estilos
+│   └── styles.css                # Estilos
 ├── js/
-│   ├── auth.js         # Sistema de autenticación
-│   ├── sheets-api.js   # Integración Google Sheets
-│   └── calendar.js     # Lógica del calendario
-├── README.md           # Este archivo
-└── .gitignore          # Archivos a ignorar
+│   ├── auth.js                   # Sistema de autenticación
+│   ├── sheets-api.js             # Integración Google Sheets
+│   ├── holidays.js               # Gestión de días feriados
+│   └── calendar.js               # Lógica del calendario
+└── .gitignore                    # Archivos a ignorar
 ```
 
 ## 🎨 Personalización
+
+### Configurar Días Feriados
+
+Para marcar días no laborables en el calendario:
+
+1. **Edita** `js/holidays.js`
+2. **Agrega fechas** en dos formatos:
+   - `MM-DD` para feriados anuales (ej: `'12-25'` para Navidad)
+   - `YYYY-MM-DD` para fechas específicas (ej: `'2026-03-15'`)
+
+```javascript
+const HOLIDAYS = [
+    '01-01',  // Año Nuevo
+    '12-25',  // Navidad
+    '2026-07-04',  // Fecha específica
+];
+```
+
+📖 **Guía completa**: Ver [CONFIGURACION_FERIADOS.md](CONFIGURACION_FERIADOS.md)
 
 ### Cambiar Colores
 

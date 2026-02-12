@@ -18,11 +18,11 @@ const HOLIDAYS = [
     
     // Navidad
     '12-25',
-    
-    
     // Ejemplos de fechas específicas (descomenta para usar):
-    '02-16', // Ejemplo: Fecha específica
-    '02-17', // Ejemplo: Fecha específica
+    '02-16', 
+    // Ejemplo: Fecha específica
+    '02-17', 
+    // Ejemplo: Fecha específica
     // '2026-07-04', // Ejemplo: 4 de Julio (USA)
 ];
 
