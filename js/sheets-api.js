@@ -2,14 +2,15 @@
 
 class SheetsAPIManager {
     constructor() {
-        // IMPORTANTE: Reemplaza estos valores con los tuyos
-        this.SHEET_ID = '1THx5FOoMbZWd0QeflmCwmiwnKX5OVPdFp6y9T2HBzyk'; // ID de tu Google Sheet
-        this.API_KEY = 'AIzaSyDlZdlgLrSeDJYYE5VrxVfZETkaG3XpLq8'; // API Key de Google
-        this.RANGE = 'Citas!A2:F1000'; // Rango de celdas
+        // ✅ SEGURIDAD: Solo usamos Google Apps Script
+        // No se exponen credenciales sensibles en el cliente
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweTkpP5_01dknzX-LD58t1DYpZyFUBlZFGx67nBPmipDvqhmRR3PPQSkBj3KL9ZQ/exec';
         this.citas = [];
         
-        // Google Apps Script URL (opcional pero recomendado)
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzEYotopJwGW6s5EkDuWSrCg1c3H6Pc4H_rumSfMsJAnLjpz-4sTws-R5rxm9U2vy-sWA/exec';
+        // Verificar que la URL esté configurada
+        if (!this.APPS_SCRIPT_URL) {
+            console.error('⚠️ Google Apps Script URL no configurada');
+        }
         
         this.init();
     }
@@ -23,12 +24,11 @@ class SheetsAPIManager {
         try {
             showToast('Cargando citas...', 'info');
 
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.SHEET_ID}/values/${this.RANGE}?key=${this.API_KEY}`;
-
-            const response = await fetch(url);
+            // ✅ Cargar desde Google Apps Script (seguro)
+            const response = await fetch(`${this.APPS_SCRIPT_URL}?action=getCitas`);
             const data = await response.json();
 
-            if (data.values && data.values.length > 0) {
+            if (data.success && data.values && data.values.length > 0) {
                 // Hay datos reales de Google Sheets
                 this.citas = this.parseCitas(data.values);
                 window.calendarManager?.updateCalendar(this.citas);
@@ -63,11 +63,13 @@ class SheetsAPIManager {
         return values.map((row, index) => ({
             id: `cita_${index}_${Date.now()}`,
             paciente: row[0] || '',
-            fecha: row[1] || '',
-            hora: row[2] || '',
-            duracion: parseInt(row[3]) || 60,
-            tipo: row[4] || 'presencial',
-            notas: row[5] || '',
+            apellido: row[1] || '',
+            carrera: row[2] || '',
+            fecha: row[3] || '',
+            hora: row[4] || '',
+            duracion: parseInt(row[5]) || 45,
+            tipo: row[6] || 'presencial',
+            notas: row[7] || '',
             timestamp: Date.now()
         })).filter(cita => cita.paciente && cita.fecha);
     }
@@ -75,30 +77,8 @@ class SheetsAPIManager {
     // ===== GUARDAR CITA EN SHEETS =====
     async saveCita(cita) {
         try {
-            // Opción 1: Usar Google Apps Script (RECOMENDADO)
-            if (this.APPS_SCRIPT_URL) {
-                return await this.saveCitaViaAppsScript(cita);
-            }
-
-            // Opción 2: Guardar localmente y mostrar instrucciones
-            showToast(
-                'Cita guardada localmente. Necesitas configurar Google Apps Script para guardar en el Sheet.',
-                'info'
-            );
-
-            this.citas.push(cita);
-            window.calendarManager?.updateCalendar(this.citas);
-            
-            // Limpiar mocks al guardar datos reales
-            localStorage.removeItem('calendarMockData');
-            localStorage.removeItem('usingMockData');
-            
-            // Celebrar con confetti
-            if (typeof window.celebrateSuccess === 'function') {
-                window.celebrateSuccess();
-            }
-
-            return true;
+            // ✅ Solo usar Google Apps Script (seguro)
+            return await this.saveCitaViaAppsScript(cita);
         } catch (error) {
             console.error('Error guardando cita:', error);
             showToast('Error al guardar la cita', 'error');
@@ -118,6 +98,8 @@ class SheetsAPIManager {
                     action: 'saveCita',
                     cita: {
                         paciente: cita.paciente,
+                        apellido: cita.apellido || '',
+                        carrera: cita.carrera || '',
                         fecha: cita.fecha,
                         hora: cita.hora,
                         duracion: cita.duracion,
