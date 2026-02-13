@@ -28,18 +28,33 @@ class SheetsAPIManager {
             const response = await fetch(url);
             const data = await response.json();
 
-            if (data.values) {
+            if (data.values && data.values.length > 0) {
+                // Hay datos reales de Google Sheets
                 this.citas = this.parseCitas(data.values);
                 window.calendarManager?.updateCalendar(this.citas);
                 showToast(`${this.citas.length} citas cargadas`, 'success');
                 this.updateSyncTime();
+                
+                // Limpiar mocks porque hay datos reales
+                localStorage.removeItem('calendarMockData');
+                localStorage.removeItem('usingMockData');
             } else {
-                this.citas = [];
-                window.calendarManager?.updateCalendar([]);
+                // No hay datos en Google Sheets
+                const usingMocks = localStorage.getItem('usingMockData');
+                if (!usingMocks) {
+                    // No hay mocks ni datos reales
+                    this.citas = [];
+                    window.calendarManager?.updateCalendar([]);
+                    showToast('No hay citas registradas', 'info');
+                } else {
+                    // Mantener los mocks
+                    showToast('Usando datos de ejemplo', 'info');
+                }
+                this.updateSyncTime();
             }
         } catch (error) {
             console.error('Error cargando citas:', error);
-            showToast('Error al cargar citas. Verifica tu Sheet ID y API Key.', 'error');
+            showToast('Error al cargar citas. Usando datos locales.', 'error');
         }
     }
 
@@ -73,6 +88,10 @@ class SheetsAPIManager {
 
             this.citas.push(cita);
             window.calendarManager?.updateCalendar(this.citas);
+            
+            // Limpiar mocks al guardar datos reales
+            localStorage.removeItem('calendarMockData');
+            localStorage.removeItem('usingMockData');
             
             // Celebrar con confetti
             if (typeof window.celebrateSuccess === 'function') {
@@ -114,6 +133,10 @@ class SheetsAPIManager {
                 this.citas.push(cita);
                 window.calendarManager?.updateCalendar(this.citas);
                 showToast('Cita guardada correctamente', 'success');
+                
+                // Limpiar mocks al guardar datos reales
+                localStorage.removeItem('calendarMockData');
+                localStorage.removeItem('usingMockData');
                 
                 // Celebrar con confetti
                 if (typeof window.celebrateSuccess === 'function') {

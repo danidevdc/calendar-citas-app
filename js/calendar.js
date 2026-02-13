@@ -13,6 +13,7 @@ class CalendarManager {
         this.setupCalendar();
         this.setupEventListeners();
         this.setupCitaForm();
+        this.loadMockData(); // Cargar datos de ejemplo
         this.autoSyncCitas();
     }
 
@@ -27,6 +28,7 @@ class CalendarManager {
             headerToolbar: false, // Usamos nuestros propios controles
             height: 'auto',
             contentHeight: 'auto',
+            allDaySlot: false, // Ocultar la fila "all day"
             // Configuración de horario para vista semanal
             slotMinTime: '08:00:00',
             slotMaxTime: '17:00:00',
@@ -94,6 +96,43 @@ class CalendarManager {
     // ===== MANEJAR CLICK EN DÍA =====
     handleDateClick(info) {
         if (!this.editingCita) {
+            // Parsear la fecha correctamente evitando problemas de zona horaria
+            const dateStr = info.dateStr.split('T')[0];
+            const [year, month, day] = dateStr.split('-');
+            const clickedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            
+            // Para la validación de hora en vista semanal
+            let clickedDateTime;
+            if (info.dateStr.includes('T')) {
+                const timeStr = info.dateStr.split('T')[1];
+                const [hour, minute] = timeStr.split(':');
+                clickedDateTime = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+            } else {
+                clickedDateTime = clickedDate;
+            }
+            
+            const now = new Date();
+            
+            // Validar que no sea una fecha/hora pasada
+            if (clickedDateTime < now) {
+                showToast('No puedes agendar citas en fechas u horas pasadas', 'error');
+                return;
+            }
+            
+            // Validar que no sea feriado (prioridad sobre fin de semana)
+            if (typeof isHoliday === 'function' && isHoliday(clickedDate)) {
+                const holidayName = typeof getHolidayName === 'function' ? getHolidayName(clickedDate) : 'día feriado';
+                showToast(`No puedes agendar citas en ${holidayName}`, 'error');
+                return;
+            }
+            
+            // Validar que no sea fin de semana (0 = Domingo, 6 = Sábado)
+            const dayOfWeek = clickedDate.getDay();
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                showToast('No puedes agendar citas en fines de semana', 'error');
+                return;
+            }
+            
             const modal = document.getElementById('citaModal');
             const title = document.getElementById('citaTitle');
             const form = document.getElementById('citaForm');
@@ -102,8 +141,11 @@ class CalendarManager {
             form.reset();
             this.editingCita = null;
 
-            document.getElementById('citaDate').value = info.dateStr;
-            document.getElementById('citaTime').value = '09:00';
+            // Usar la fecha ya parseada
+            const timeStr = info.dateStr.includes('T') ? info.dateStr.split('T')[1].substring(0, 5) : '09:00';
+            
+            document.getElementById('citaDate').value = dateStr;
+            document.getElementById('citaTime').value = timeStr;
             document.getElementById('citaDuration').value = '45';
             document.getElementById('deleteCitaBtn').style.display = 'none';
 
@@ -120,8 +162,9 @@ class CalendarManager {
 
         if (cita) {
             title.textContent = 'Editar Cita';
-            document.getElementById('pacienteName').value = cita.paciente;
-            document.getElementById('pacienteApellido').value = cita.apellido || '';
+            // Combinar nombre y apellido para mostrar en el campo único
+            const nombreCompleto = cita.apellido ? `${cita.paciente} ${cita.apellido}` : cita.paciente;
+            document.getElementById('pacienteNombreCompleto').value = nombreCompleto;
             document.getElementById('pacienteCarrera').value = cita.carrera || '';
             document.getElementById('citaDate').value = cita.fecha;
             document.getElementById('citaTime').value = cita.hora;
@@ -170,6 +213,12 @@ class CalendarManager {
             classes.push('fc-day-holiday');
         }
         
+        // Marcar fines de semana
+        const dayOfWeek = cellDate.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            classes.push('fc-day-weekend');
+        }
+        
         return classes;
     }
 
@@ -197,8 +246,15 @@ class CalendarManager {
             // Agregar tooltip opcional con el nombre del feriado
             if (typeof getHolidayName === 'function') {
                 const holidayName = getHolidayName(cellDate);
-                info.el.title = holidayName;
+                info.el.title = holidayName + ' (No disponible)';
             }
+        }
+        
+        // Marcar fines de semana
+        const dayOfWeek = cellDate.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            info.el.classList.add('fc-day-weekend');
+            info.el.title = 'Fin de semana (No disponible)';
         }
     }
 
@@ -291,8 +347,7 @@ class CalendarManager {
 
     // ===== GUARDAR CITA =====
     async saveCita() {
-        const paciente = document.getElementById('pacienteName').value.trim();
-        const apellido = document.getElementById('pacienteApellido').value.trim();
+        const nombreCompleto = document.getElementById('pacienteNombreCompleto').value.trim();
         const carrera = document.getElementById('pacienteCarrera').value.trim();
         const fecha = document.getElementById('citaDate').value;
         const hora = document.getElementById('citaTime').value;
@@ -300,10 +355,41 @@ class CalendarManager {
         const tipo = document.getElementById('citaTipo').value;
         const notas = document.getElementById('citaNotas').value.trim();
 
-        if (!paciente || !apellido || !carrera || !fecha || !hora) {
-            showToast('Por favor completa todos los campos obligatorios (Nombre, Apellido, Carrera, Fecha y Hora)', 'error');
+        if (!nombreCompleto || !carrera || !fecha || !hora) {
+            showToast('Por favor completa todos los campos obligatorios (Nombre Completo, Carrera, Fecha y Hora)', 'error');
             return;
         }
+
+        // Validar que no sea una fecha u hora pasada
+        const [year, month, day] = fecha.split('-');
+        const [hourVal, minuteVal] = hora.split(':');
+        const citaDateTime = new Date(year, month - 1, day, hourVal, minuteVal);
+        const now = new Date();
+        
+        if (citaDateTime < now) {
+            showToast('No puedes agendar citas en fechas u horas pasadas', 'error');
+            return;
+        }
+        
+        // Validar que no sea fin de semana
+        const dayOfWeek = citaDateTime.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            showToast('No puedes agendar citas en fines de semana', 'error');
+            return;
+        }
+        
+        // Validar que no sea feriado
+        if (typeof isHoliday === 'function' && isHoliday(citaDateTime)) {
+            const holidayName = typeof getHolidayName === 'function' ? getHolidayName(citaDateTime) : 'día feriado';
+            showToast(`No puedes agendar citas en ${holidayName}`, 'error');
+            return;
+        }
+
+        // Dividir el nombre completo en nombre y apellido
+        // El primer espacio separa nombre de apellido(s)
+        const nombreParts = nombreCompleto.split(' ');
+        const paciente = nombreParts[0];
+        const apellido = nombreParts.length > 1 ? nombreParts.slice(1).join(' ') : '';
 
         const cita = {
             id: this.editingCita?.id || `cita_${Date.now()}`,
@@ -334,6 +420,73 @@ class CalendarManager {
         // Actualizar botones
         document.getElementById('monthViewBtn').classList.toggle('active', viewName === 'dayGridMonth');
         document.getElementById('weekViewBtn').classList.toggle('active', viewName === 'timeGridWeek');
+    }
+
+    // ===== CARGAR DATOS DE EJEMPLO (MOCK) =====
+    loadMockData() {
+        // Verificar si ya hay mocks en localStorage
+        const savedMocks = localStorage.getItem('calendarMockData');
+        if (savedMocks) {
+            this.citas = JSON.parse(savedMocks);
+            this.updateCalendar(this.citas);
+            return;
+        }
+
+        const mockCitas = [
+            {
+                id: 'mock_1',
+                paciente: 'María',
+                apellido: 'González',
+                carrera: 'Psicología',
+                fecha: '2026-02-13',
+                hora: '09:00',
+                duracion: 45,
+                tipo: 'presencial',
+                notas: 'Primera sesión',
+                timestamp: Date.now()
+            },
+            {
+                id: 'mock_2',
+                paciente: 'Carlos',
+                apellido: 'Rodríguez',
+                carrera: 'Ingeniería',
+                fecha: '2026-02-13',
+                hora: '11:30',
+                duracion: 60,
+                tipo: 'virtual',
+                notas: 'Seguimiento mensual',
+                timestamp: Date.now()
+            },
+            {
+                id: 'mock_3',
+                paciente: 'Ana',
+                apellido: 'Martínez',
+                carrera: 'Medicina',
+                fecha: '2026-02-14',
+                hora: '10:00',
+                duracion: 45,
+                tipo: 'telefonica',
+                notas: '',
+                timestamp: Date.now()
+            },
+            {
+                id: 'mock_4',
+                paciente: 'Sofia',
+                apellido: 'López',
+                carrera: 'Arquitectura',
+                fecha: '2026-02-18',
+                hora: '16:00',
+                duracion: 45,
+                tipo: 'virtual',
+                notas: 'Terapia de grupo',
+                timestamp: Date.now()
+            }
+        ];
+        
+        // Guardar mocks en localStorage
+        localStorage.setItem('calendarMockData', JSON.stringify(mockCitas));
+        localStorage.setItem('usingMockData', 'true');
+        this.updateCalendar(mockCitas);
     }
 
     // ===== ACTUALIZAR CALENDARIO =====

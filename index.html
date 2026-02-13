@@ -101,49 +101,46 @@
             <form id="citaForm" class="cita-form">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="pacienteName">Nombre *</label>
+                        <label for="pacienteNombreCompleto">
+                            <i class="fas fa-user"></i> Nombre Completo *
+                        </label>
                         <input 
                             type="text" 
-                            id="pacienteName" 
-                            placeholder="Ej: Juan"
+                            id="pacienteNombreCompleto" 
+                            placeholder="Ej: Juan Pérez"
                             required
                         >
                     </div>
                     <div class="form-group">
-                        <label for="pacienteApellido">Apellido *</label>
+                        <label for="pacienteCarrera">
+                            <i class="fas fa-graduation-cap"></i> Carrera *
+                        </label>
                         <input 
                             type="text" 
-                            id="pacienteApellido" 
-                            placeholder="Ej: Pérez"
+                            id="pacienteCarrera" 
+                            placeholder="Ej: Ingeniería"
                             required
                         >
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="pacienteCarrera">Carrera *</label>
-                    <input 
-                        type="text" 
-                        id="pacienteCarrera" 
-                        placeholder="Ej: Ingeniería, Medicina, etc."
-                        required
-                    >
-                </div>
-
-                <div class="form-row">
+                <div class="form-row form-row-triple">
                     <div class="form-group">
-                        <label for="citaDate">Fecha *</label>
+                        <label for="citaDate">
+                            <i class="fas fa-calendar-day"></i> Fecha *
+                        </label>
                         <input type="date" id="citaDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="citaTime">Hora *</label>
+                        <label for="citaTime">
+                            <i class="fas fa-clock"></i> Hora *
+                        </label>
                         <input type="time" id="citaTime" required>
                     </div>
-                </div>
-
-                <div class="form-row">
                     <div class="form-group">
-                        <label for="citaDuration">Duración (min)</label>
+                        <label for="citaDuration">
+                            <i class="fas fa-hourglass-half"></i> Duración
+                        </label>
                         <input 
                             type="number" 
                             id="citaDuration" 
@@ -153,23 +150,29 @@
                             required
                         >
                     </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="citaTipo">Tipo de Sesión</label>
+                        <label for="citaTipo">
+                            <i class="fas fa-video"></i> Tipo de Sesión
+                        </label>
                         <select id="citaTipo">
                             <option value="presencial">🏢 Presencial</option>
                             <option value="virtual">💻 Virtual</option>
                             <option value="telefonica">📞 Telefónica</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="citaNotas">Notas (opcional)</label>
-                    <textarea 
-                        id="citaNotas" 
-                        placeholder="Ej: Primera sesión, seguimiento..."
-                        rows="2"
-                    ></textarea>
+                    <div class="form-group">
+                        <label for="citaNotas">
+                            <i class="fas fa-sticky-note"></i> Notas <span class="label-optional">(opcional)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="citaNotas" 
+                            placeholder="Primera sesión, seguimiento..."
+                        >
+                    </div>
                 </div>
 
                 <div class="form-actions">
