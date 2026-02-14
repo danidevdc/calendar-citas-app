@@ -4,7 +4,7 @@ class SheetsAPIManager {
     constructor() {
         // ✅ SEGURIDAD: Solo usamos Google Apps Script
         // No se exponen credenciales sensibles en el cliente
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjNf8StLorEYqPClNo3LpYEwiUjhWtLrwHw7vZ8AHUZg7qGFQcrBCXpaYuLnz-lPgjbQ/exec';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyapD4fAZVsM6NZuw77pYwOfSBfve9zzk1dR9g-f8HWn0Z1Q21RMMQqlfsxUPT8PiHBGg/exec';
         this.citas = [];
         
         // Verificar que la URL esté configurada
@@ -78,6 +78,42 @@ class SheetsAPIManager {
         }
     }
 
+    // ===== NORMALIZAR HORA A FORMATO HH:MM 24H =====
+    normalizeHora(horaValue) {
+        if (!horaValue) return '';
+        
+        const horaStr = horaValue.toString().trim();
+        
+        // Si ya está en formato HH:MM simple, retornar
+        if (/^\d{1,2}:\d{2}$/.test(horaStr)) {
+            const [h, m] = horaStr.split(':');
+            return `${h.padStart(2, '0')}:${m}`;
+        }
+        
+        // Si tiene formato AM/PM (ej: "9:00:00 AM")
+        const ampmMatch = horaStr.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)/i);
+        if (ampmMatch) {
+            let hour = parseInt(ampmMatch[1]);
+            const minute = ampmMatch[2];
+            const period = ampmMatch[3].toUpperCase();
+            
+            // Convertir a formato 24h
+            if (period === 'PM' && hour !== 12) hour += 12;
+            if (period === 'AM' && hour === 12) hour = 0;
+            
+            return `${hour.toString().padStart(2, '0')}:${minute}`;
+        }
+        
+        // Si tiene formato ISO (ej: "1899-12-30T13:32:36.000Z")
+        if (horaStr.includes('T')) {
+            const timePart = horaStr.split('T')[1];
+            return timePart.substring(0, 5); // HH:MM
+        }
+        
+        console.warn(`⚠️ Formato de hora no reconocido: ${horaStr}`);
+        return horaStr;
+    }
+
     // ===== PARSEAR DATOS DEL SHEET =====
     parseCitas(values) {
         console.log(`📊 Procesando ${values.length} filas del Sheet...`);
@@ -96,7 +132,7 @@ class SheetsAPIManager {
                     apellido: (row[1] || '').toString().trim(),
                     carrera: (row[2] || '').toString().trim(),
                     fecha: (row[3] || '').toString().trim(),
-                    hora: (row[4] || '').toString().trim(),
+                    hora: this.normalizeHora(row[4]), // ← Normalizar hora
                     duracion: parseInt(row[5]) || 45,
                     estado: (row[6] || 'pendiente').toString().trim(),
                     notas: (row[7] || '').toString().trim(),
@@ -129,21 +165,12 @@ class SheetsAPIManager {
             // Actualizar fecha normalizada
             cita.fecha = fechaLimpia;
 
-            // Validar formato de hora (HH:MM o ISO)
-            let horaLimpia = cita.hora;
-            if (cita.hora.includes('T')) {
-                // Si tiene formato ISO (1899-12-30T13:32:36.000Z), extraer solo HH:MM
-                horaLimpia = cita.hora.split('T')[1].substring(0, 5);
-            }
-
+            // Validar formato de hora (ya debería estar normalizada)
             const horaRegex = /^\d{1,2}:\d{2}$/;
-            if (!horaRegex.test(horaLimpia)) {
+            if (!horaRegex.test(cita.hora)) {
                 console.warn(`⚠️ Hora inválida ignorada: ${cita.paciente} - ${cita.hora}`);
                 return false;
             }
-
-            // Actualizar hora normalizada
-            cita.hora = horaLimpia;
 
             // Validar que la fecha sea válida (no NaN)
             const [year, month, day] = cita.fecha.split('-').map(Number);
@@ -212,12 +239,8 @@ class SheetsAPIManager {
                 fechaLimpia = fechaLimpia.split('T')[0];
             }
 
-            // 🔧 Normalizar hora a formato simple HH:MM
-            let horaLimpia = cita.hora || '';
-            if (horaLimpia.includes('T')) {
-                // Si tiene formato ISO, extraer solo HH:MM
-                horaLimpia = horaLimpia.split('T')[1].substring(0, 5);
-            }
+            // 🔧 Normalizar hora usando la función helper
+            const horaLimpia = this.normalizeHora(cita.hora);
 
             // ✅ Enviar cada campo como parámetro individual (más compatible)
             const params = new URLSearchParams({
