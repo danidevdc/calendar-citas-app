@@ -4,7 +4,7 @@ class SheetsAPIManager {
     constructor() {
         // ✅ SEGURIDAD: Solo usamos Google Apps Script
         // No se exponen credenciales sensibles en el cliente
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzP_64asXRmEz_QPP89muMaeLgQLk_y-R3V9vMu3ijS0S_OLLCCogr5nwHG2Utd0nyIOA/exec';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwTlwMyqmV59O2u74qD1Is0vYTkG2AWPEu10mJ2JHWMGh5-jp9u8bB_rcEbSEJ5SNoQA/exec';
         this.citas = [];
         
         // Verificar que la URL esté configurada
@@ -109,19 +109,22 @@ class SheetsAPIManager {
     // ===== GUARDAR VÍA GOOGLE APPS SCRIPT =====
     async saveCitaViaAppsScript(cita) {
         try {
-            // ✅ Usar GET en lugar de POST para evitar CORS
-            const citaData = {
-                paciente: cita.paciente,
+            // ✅ Enviar cada campo como parámetro individual (más compatible)
+            const params = new URLSearchParams({
+                action: 'saveCita',
+                paciente: cita.paciente || '',
                 apellido: cita.apellido || '',
                 carrera: cita.carrera || '',
-                fecha: cita.fecha,
-                hora: cita.hora,
-                duracion: cita.duracion,
-                tipo: cita.tipo,
-                notas: cita.notas
-            };
+                fecha: cita.fecha || '',
+                hora: cita.hora || '',
+                duracion: cita.duracion || 45,
+                tipo: cita.tipo || 'presencial',
+                notas: cita.notas || ''
+            });
 
-            const url = `${this.APPS_SCRIPT_URL}?action=saveCita&data=${encodeURIComponent(JSON.stringify(citaData))}`;
+            const url = `${this.APPS_SCRIPT_URL}?${params.toString()}`;
+            
+            console.log('📤 Enviando cita a Google Sheets...');
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -133,6 +136,7 @@ class SheetsAPIManager {
             }
 
             const data = await response.json();
+            console.log('📩 Respuesta de Google:', data);
 
             if (data.success) {
                 this.citas.push(cita);

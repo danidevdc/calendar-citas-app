@@ -423,75 +423,11 @@ class CalendarManager {
         document.getElementById('weekViewBtn').classList.toggle('active', viewName === 'timeGridWeek');
     }
 
-    // ===== CARGAR DATOS DE EJEMPLO (MOCK) =====
+    // ===== CARGAR DATOS DE EJEMPLO (MOCK) - DESHABILITADO =====
     loadMockDataIfNeeded() {
-        // Solo cargar si no hay datos reales y no hay mocks guardados
-        const savedMocks = localStorage.getItem('calendarMockData');
-        if (savedMocks) {
-            console.log('📋 Mocks ya existen en localStorage');
-            this.citas = JSON.parse(savedMocks);
-            this.updateCalendar(this.citas);
-            return true;
-        }
-
-        // Crear mocks solo si no existen
-        console.log('🎭 Creando datos de ejemplo...');
-        const mockCitas = [
-            {
-                id: 'mock_1',
-                paciente: 'María',
-                apellido: 'González',
-                carrera: 'Psicología',
-                fecha: '2026-02-13',
-                hora: '09:00',
-                duracion: 45,
-                tipo: 'presencial',
-                notas: 'Primera sesión',
-                timestamp: Date.now()
-            },
-            {
-                id: 'mock_2',
-                paciente: 'Carlos',
-                apellido: 'Rodríguez',
-                carrera: 'Ingeniería',
-                fecha: '2026-02-13',
-                hora: '11:30',
-                duracion: 60,
-                tipo: 'virtual',
-                notas: 'Seguimiento mensual',
-                timestamp: Date.now()
-            },
-            {
-                id: 'mock_3',
-                paciente: 'Ana',
-                apellido: 'Martínez',
-                carrera: 'Medicina',
-                fecha: '2026-02-14',
-                hora: '10:00',
-                duracion: 45,
-                tipo: 'telefonica',
-                notas: '',
-                timestamp: Date.now()
-            },
-            {
-                id: 'mock_4',
-                paciente: 'Sofia',
-                apellido: 'López',
-                carrera: 'Arquitectura',
-                fecha: '2026-02-18',
-                hora: '16:00',
-                duracion: 45,
-                tipo: 'virtual',
-                notas: 'Terapia de grupo',
-                timestamp: Date.now()
-            }
-        ];
-        
-        // Guardar mocks en localStorage
-        localStorage.setItem('calendarMockData', JSON.stringify(mockCitas));
-        localStorage.setItem('usingMockData', 'true');
-        this.updateCalendar(mockCitas);
-        return true;
+        // 🚫 Función deshabilitada - no cargar mocks
+        console.log('🚫 Datos mockeados deshabilitados - usando solo datos reales');
+        return false;
     }
 
     // ===== ACTUALIZAR CALENDARIO =====

@@ -39,7 +39,16 @@ function doGet(e) {
     
     // IMPORTANTE: Manejar peticiones POST vía GET para CORS
     if (action === 'saveCita') {
-      const citaData = JSON.parse(decodeURIComponent(e.parameter.data));
+      const citaData = {
+        paciente: e.parameter.paciente || '',
+        apellido: e.parameter.apellido || '',
+        carrera: e.parameter.carrera || '',
+        fecha: e.parameter.fecha || '',
+        hora: e.parameter.hora || '',
+        duracion: parseInt(e.parameter.duracion) || 45,
+        tipo: e.parameter.tipo || 'presencial',
+        notas: e.parameter.notas || ''
+      };
       return saveCita(citaData);
     }
     
