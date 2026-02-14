@@ -113,12 +113,21 @@ class SheetsAPIManager {
                 return false;
             }
 
-            // Validar formato de fecha (YYYY-MM-DD)
+            // Validar formato de fecha (YYYY-MM-DD o ISO con T)
+            let fechaLimpia = cita.fecha;
+            if (cita.fecha.includes('T')) {
+                // Si tiene formato ISO, extraer solo YYYY-MM-DD
+                fechaLimpia = cita.fecha.split('T')[0];
+            }
+
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!fechaRegex.test(cita.fecha)) {
+            if (!fechaRegex.test(fechaLimpia)) {
                 console.warn(`⚠️ Fecha inválida ignorada: ${cita.paciente} - ${cita.fecha}`);
                 return false;
             }
+
+            // Actualizar fecha normalizada
+            cita.fecha = fechaLimpia;
 
             // Validar formato de hora (HH:MM)
             const horaRegex = /^\d{1,2}:\d{2}$/;
@@ -187,13 +196,20 @@ class SheetsAPIManager {
     // ===== GUARDAR VÍA GOOGLE APPS SCRIPT =====
     async saveCitaViaAppsScript(cita) {
         try {
+            // 🔧 Normalizar fecha a formato simple YYYY-MM-DD
+            let fechaLimpia = cita.fecha || '';
+            if (fechaLimpia.includes('T')) {
+                // Si tiene formato ISO, extraer solo YYYY-MM-DD
+                fechaLimpia = fechaLimpia.split('T')[0];
+            }
+
             // ✅ Enviar cada campo como parámetro individual (más compatible)
             const params = new URLSearchParams({
                 action: 'saveCita',
                 paciente: cita.paciente || '',
                 apellido: cita.apellido || '',
                 carrera: cita.carrera || '',
-                fecha: cita.fecha || '',
+                fecha: fechaLimpia,
                 hora: cita.hora || '',
                 duracion: cita.duracion || 45,
                 estado: cita.estado || 'pendiente',
