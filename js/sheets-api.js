@@ -4,7 +4,7 @@ class SheetsAPIManager {
     constructor() {
         // ✅ SEGURIDAD: Solo usamos Google Apps Script
         // No se exponen credenciales sensibles en el cliente
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3gTJQJ0mZgyu99cPRaZdpSFX037KsUL-dzBQuU94bN6HSG4W56egXiLxHqF5DnduE_g/exec';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjNf8StLorEYqPClNo3LpYEwiUjhWtLrwHw7vZ8AHUZg7qGFQcrBCXpaYuLnz-lPgjbQ/exec';
         this.citas = [];
         
         // Verificar que la URL esté configurada
@@ -129,12 +129,21 @@ class SheetsAPIManager {
             // Actualizar fecha normalizada
             cita.fecha = fechaLimpia;
 
-            // Validar formato de hora (HH:MM)
+            // Validar formato de hora (HH:MM o ISO)
+            let horaLimpia = cita.hora;
+            if (cita.hora.includes('T')) {
+                // Si tiene formato ISO (1899-12-30T13:32:36.000Z), extraer solo HH:MM
+                horaLimpia = cita.hora.split('T')[1].substring(0, 5);
+            }
+
             const horaRegex = /^\d{1,2}:\d{2}$/;
-            if (!horaRegex.test(cita.hora)) {
+            if (!horaRegex.test(horaLimpia)) {
                 console.warn(`⚠️ Hora inválida ignorada: ${cita.paciente} - ${cita.hora}`);
                 return false;
             }
+
+            // Actualizar hora normalizada
+            cita.hora = horaLimpia;
 
             // Validar que la fecha sea válida (no NaN)
             const [year, month, day] = cita.fecha.split('-').map(Number);
@@ -203,6 +212,13 @@ class SheetsAPIManager {
                 fechaLimpia = fechaLimpia.split('T')[0];
             }
 
+            // 🔧 Normalizar hora a formato simple HH:MM
+            let horaLimpia = cita.hora || '';
+            if (horaLimpia.includes('T')) {
+                // Si tiene formato ISO, extraer solo HH:MM
+                horaLimpia = horaLimpia.split('T')[1].substring(0, 5);
+            }
+
             // ✅ Enviar cada campo como parámetro individual (más compatible)
             const params = new URLSearchParams({
                 action: 'saveCita',
@@ -210,7 +226,7 @@ class SheetsAPIManager {
                 apellido: cita.apellido || '',
                 carrera: cita.carrera || '',
                 fecha: fechaLimpia,
-                hora: cita.hora || '',
+                hora: horaLimpia,
                 duracion: cita.duracion || 45,
                 estado: cita.estado || 'pendiente',
                 notas: cita.notas || ''
