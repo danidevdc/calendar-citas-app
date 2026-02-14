@@ -4,7 +4,7 @@ class SheetsAPIManager {
     constructor() {
         // ✅ SEGURIDAD: Solo usamos Google Apps Script
         // No se exponen credenciales sensibles en el cliente
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwo3tk97YuKd11ojUyGi9iMlJqRJmP9NRvGjWsKxlbbkHiLBsHn_PxGnQn_qNcLhEZH1w/exec';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3gTJQJ0mZgyu99cPRaZdpSFX037KsUL-dzBQuU94bN6HSG4W56egXiLxHqF5DnduE_g/exec';
         this.citas = [];
         
         // Verificar que la URL esté configurada
