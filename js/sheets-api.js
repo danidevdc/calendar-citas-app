@@ -80,37 +80,50 @@ class SheetsAPIManager {
 
     // ===== PARSEAR DATOS DEL SHEET =====
     parseCitas(values) {
-        const citas = values.map((row, index) => ({
-            id: `cita_${index}_${Date.now()}`,
-            paciente: row[0] || '',
-            apellido: row[1] || '',
-            carrera: row[2] || '',
-            fecha: row[3] || '',
-            hora: row[4] || '',
-            duracion: parseInt(row[5]) || 45,
-            estado: row[6] || 'pendiente',  // Columna G ahora es "Estado"
-            notas: row[7] || '',
-            timestamp: Date.now()
-        }));
+        console.log(`📊 Procesando ${values.length} filas del Sheet...`);
+        
+        const citas = values
+            .map((row, index) => {
+                // Saltar filas completamente vacías
+                const isEmptyRow = row.every(cell => !cell || cell.toString().trim() === '');
+                if (isEmptyRow) {
+                    return null;
+                }
+
+                return {
+                    id: `cita_${index}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    paciente: (row[0] || '').toString().trim(),
+                    apellido: (row[1] || '').toString().trim(),
+                    carrera: (row[2] || '').toString().trim(),
+                    fecha: (row[3] || '').toString().trim(),
+                    hora: (row[4] || '').toString().trim(),
+                    duracion: parseInt(row[5]) || 45,
+                    estado: (row[6] || 'pendiente').toString().trim(),
+                    notas: (row[7] || '').toString().trim(),
+                    timestamp: Date.now()
+                };
+            })
+            .filter(cita => cita !== null); // Eliminar filas vacías
 
         // ✅ Filtrar citas con datos válidos y fechas/horas correctas
         const citasValidas = citas.filter(cita => {
             // Debe tener al menos paciente y fecha
             if (!cita.paciente || !cita.fecha || !cita.hora) {
+                console.warn(`⚠️ Cita sin datos básicos ignorada:`, cita.paciente || '(sin nombre)');
                 return false;
             }
 
             // Validar formato de fecha (YYYY-MM-DD)
             const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
             if (!fechaRegex.test(cita.fecha)) {
-                console.warn(`⚠️ Fecha inválida ignorada: ${cita.fecha}`);
+                console.warn(`⚠️ Fecha inválida ignorada: ${cita.paciente} - ${cita.fecha}`);
                 return false;
             }
 
             // Validar formato de hora (HH:MM)
             const horaRegex = /^\d{1,2}:\d{2}$/;
             if (!horaRegex.test(cita.hora)) {
-                console.warn(`⚠️ Hora inválida ignorada: ${cita.hora}`);
+                console.warn(`⚠️ Hora inválida ignorada: ${cita.paciente} - ${cita.hora}`);
                 return false;
             }
 
@@ -120,14 +133,20 @@ class SheetsAPIManager {
             const testDate = new Date(year, month - 1, day, hour, minute);
             
             if (isNaN(testDate.getTime())) {
-                console.warn(`⚠️ Fecha/hora inválida ignorada: ${cita.fecha} ${cita.hora}`);
+                console.warn(`⚠️ Fecha/hora inválida ignorada: ${cita.paciente} - ${cita.fecha} ${cita.hora}`);
                 return false;
             }
 
             return true;
         });
 
-        console.log(`✅ ${citasValidas.length} citas válidas de ${citas.length} filas`);
+        console.log(`✅ ${citasValidas.length} citas válidas de ${values.length} filas procesadas`);
+        
+        // Mostrar detalles
+        citasValidas.forEach((cita, i) => {
+            console.log(`  ${i + 1}. ${cita.paciente} ${cita.apellido} - ${cita.fecha} ${cita.hora} - ${cita.estado}`);
+        });
+        
         return citasValidas;
     }
 

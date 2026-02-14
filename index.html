@@ -72,9 +72,14 @@
                 <span id="monthYear" class="month-year"></span>
             </div>
 
-            <button id="addCitaBtn" class="btn btn-success" data-tooltip="Agregar nueva cita">
-                <i class="fas fa-plus"></i> Nueva Cita
-            </button>
+            <div class="sync-actions">
+                <button id="syncNowBtn" class="btn btn-info" data-tooltip="Sincronizar con Google Sheets">
+                    <i class="fas fa-sync-alt"></i> Sincronizar
+                </button>
+                <button id="addCitaBtn" class="btn btn-success" data-tooltip="Agregar nueva cita">
+                    <i class="fas fa-plus"></i> Nueva Cita
+                </button>
+            </div>
         </div>
 
         <!-- CALENDARIO -->
@@ -84,6 +89,7 @@
 
         <!-- ESTADO DE SINCRONIZACIÓN -->
         <div id="syncStatus" class="sync-status">
+            <i class="fas fa-circle sync-indicator"></i>
             <span id="syncText">Último sincronizado: hace 1 minuto</span>
         </div>
     </div>
