@@ -22,39 +22,59 @@ class SheetsAPIManager {
     // ===== CARGAR CITAS DESDE SHEETS =====
     async loadCitas() {
         try {
-            showToast('Cargando citas...', 'info');
+            console.log('📥 Cargando citas desde Google Sheets...');
 
             // ✅ Cargar desde Google Apps Script (seguro)
-            const response = await fetch(`${this.APPS_SCRIPT_URL}?action=getCitas`);
+            const response = await fetch(`${this.APPS_SCRIPT_URL}?action=getCitas`, {
+                method: 'GET',
+                redirect: 'follow'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
 
             if (data.success && data.values && data.values.length > 0) {
-                // Hay datos reales de Google Sheets
+                // ✅ Hay datos reales de Google Sheets
                 this.citas = this.parseCitas(data.values);
-                window.calendarManager?.updateCalendar(this.citas);
-                showToast(`${this.citas.length} citas cargadas`, 'success');
-                this.updateSyncTime();
                 
                 // Limpiar mocks porque hay datos reales
                 localStorage.removeItem('calendarMockData');
                 localStorage.removeItem('usingMockData');
+                
+                window.calendarManager?.updateCalendar(this.citas);
+                console.log(`✅ ${this.citas.length} citas cargadas desde Sheets`);
+                showToast(`${this.citas.length} citas cargadas`, 'success');
+                this.updateSyncTime();
             } else {
-                // No hay datos en Google Sheets
-                const usingMocks = localStorage.getItem('usingMockData');
-                if (!usingMocks) {
-                    // No hay mocks ni datos reales
+                // ⚠️ No hay datos en Google Sheets
+                console.log('⚠️ No hay datos en Google Sheets');
+                
+                // Intentar cargar mocks si existen, o crearlos
+                const mockLoaded = window.calendarManager?.loadMockDataIfNeeded();
+                
+                if (mockLoaded) {
+                    showToast('Usando datos de ejemplo', 'info');
+                } else {
+                    // No hay nada
                     this.citas = [];
                     window.calendarManager?.updateCalendar([]);
+                    console.log('📭 Sin citas registradas');
                     showToast('No hay citas registradas', 'info');
-                } else {
-                    // Mantener los mocks
-                    showToast('Usando datos de ejemplo', 'info');
                 }
                 this.updateSyncTime();
             }
         } catch (error) {
-            console.error('Error cargando citas:', error);
-            showToast('Error al cargar citas. Usando datos locales.', 'error');
+            console.error('❌ Error cargando citas:', error);
+            showToast(`Error: ${error.message}`, 'error');
+            
+            // Intentar cargar datos locales como respaldo
+            const mockLoaded = window.calendarManager?.loadMockDataIfNeeded();
+            if (mockLoaded) {
+                console.log('📋 Usando datos locales como respaldo');
+            }
         }
     }
 
@@ -89,25 +109,28 @@ class SheetsAPIManager {
     // ===== GUARDAR VÍA GOOGLE APPS SCRIPT =====
     async saveCitaViaAppsScript(cita) {
         try {
-            const response = await fetch(this.APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'saveCita',
-                    cita: {
-                        paciente: cita.paciente,
-                        apellido: cita.apellido || '',
-                        carrera: cita.carrera || '',
-                        fecha: cita.fecha,
-                        hora: cita.hora,
-                        duracion: cita.duracion,
-                        tipo: cita.tipo,
-                        notas: cita.notas
-                    }
-                })
+            // ✅ Usar GET en lugar de POST para evitar CORS
+            const citaData = {
+                paciente: cita.paciente,
+                apellido: cita.apellido || '',
+                carrera: cita.carrera || '',
+                fecha: cita.fecha,
+                hora: cita.hora,
+                duracion: cita.duracion,
+                tipo: cita.tipo,
+                notas: cita.notas
+            };
+
+            const url = `${this.APPS_SCRIPT_URL}?action=saveCita&data=${encodeURIComponent(JSON.stringify(citaData))}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow'
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
 
@@ -131,8 +154,8 @@ class SheetsAPIManager {
                 return false;
             }
         } catch (error) {
-            console.error('Error:', error);
-            showToast('Error de conexión con Google Apps Script', 'error');
+            console.error('❌ Error guardando cita:', error);
+            showToast(`Error: ${error.message}`, 'error');
             return false;
         }
     }

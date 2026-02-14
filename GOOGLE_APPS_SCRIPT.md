@@ -4,6 +4,12 @@
 
 Has elegido la **Solución 3**: usar únicamente Google Apps Script, eliminando la exposición de API Keys y Sheet ID en el código del cliente.
 
+## 🔒 Solución CORS Implementada
+
+✅ **Problema resuelto**: Error CORS al hacer POST desde GitHub Pages  
+✅ **Solución**: Usar GET requests con parámetros URL  
+✅ **Beneficio**: No requiere preflight requests, evita bloqueo CORS
+
 ## 🔧 Pasos para Configurar
 
 ### 1. Abre Google Apps Script
@@ -31,13 +37,24 @@ function doGet(e) {
       return getCitas();
     }
     
+    // IMPORTANTE: Manejar peticiones POST vía GET para CORS
+    if (action === 'saveCita') {
+      const citaData = JSON.parse(decodeURIComponent(e.parameter.data));
+      return saveCita(citaData);
+    }
+    
+    if (action === 'deleteCita') {
+      const citaId = e.parameter.citaId;
+      return deleteCita(citaId);
+    }
+    
     return returnError('Acción no válida');
   } catch (error) {
     return returnError(error.toString());
   }
 }
 
-// ===== MANEJAR PETICIONES POST (Guardar/Eliminar citas) =====
+// ===== MANEJAR PETICIONES POST (Respaldo - por si se habilita CORS) =====
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);

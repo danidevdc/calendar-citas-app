@@ -13,7 +13,8 @@ class CalendarManager {
         this.setupCalendar();
         this.setupEventListeners();
         this.setupCitaForm();
-        this.loadMockData(); // Cargar datos de ejemplo
+        // ✅ NO cargar mocks aquí - dejar que SheetsAPI decida
+        // this.loadMockDataIfNeeded() se llamará desde SheetsAPI si es necesario
         this.autoSyncCitas();
     }
 
@@ -24,7 +25,7 @@ class CalendarManager {
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: this.currentView,
             locale: 'es',
-            firstDay: 0, // Comenzar la semana en domingo
+            firstDay: 1, // ✅ Comenzar la semana en lunes (más estándar en España/Latinoamérica)
             headerToolbar: false, // Usamos nuestros propios controles
             height: 'auto',
             contentHeight: 'auto',
@@ -423,15 +424,18 @@ class CalendarManager {
     }
 
     // ===== CARGAR DATOS DE EJEMPLO (MOCK) =====
-    loadMockData() {
-        // Verificar si ya hay mocks en localStorage
+    loadMockDataIfNeeded() {
+        // Solo cargar si no hay datos reales y no hay mocks guardados
         const savedMocks = localStorage.getItem('calendarMockData');
         if (savedMocks) {
+            console.log('📋 Mocks ya existen en localStorage');
             this.citas = JSON.parse(savedMocks);
             this.updateCalendar(this.citas);
-            return;
+            return true;
         }
 
+        // Crear mocks solo si no existen
+        console.log('🎭 Creando datos de ejemplo...');
         const mockCitas = [
             {
                 id: 'mock_1',
@@ -487,6 +491,7 @@ class CalendarManager {
         localStorage.setItem('calendarMockData', JSON.stringify(mockCitas));
         localStorage.setItem('usingMockData', 'true');
         this.updateCalendar(mockCitas);
+        return true;
     }
 
     // ===== ACTUALIZAR CALENDARIO =====
