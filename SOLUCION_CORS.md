@@ -45,15 +45,19 @@ function doGet(e) {
         fecha: e.parameter.fecha || '',
         hora: e.parameter.hora || '',
         duracion: parseInt(e.parameter.duracion) || 45,
-        tipo: e.parameter.tipo || 'presencial',
+        estado: e.parameter.estado || 'pendiente',
         notas: e.parameter.notas || ''
       };
       return saveCita(citaData);
     }
     
     if (action === 'deleteCita') {
-      const citaId = e.parameter.citaId;
-      return deleteCita(citaId);
+      const searchCriteria = {
+        paciente: e.parameter.paciente,
+        fecha: e.parameter.fecha,
+        hora: e.parameter.hora
+      };
+      return deleteCita(searchCriteria);
     }
     
     return returnError('Acción no válida');
@@ -114,7 +118,7 @@ function saveCita(cita) {
       cita.fecha || '',
       cita.hora || '',
       cita.duracion || 45,
-      cita.tipo || 'presencial',
+      cita.estado || 'pendiente',
       cita.notas || ''
     ];
     
@@ -131,10 +135,33 @@ function saveCita(cita) {
 }
 
 // ===== ELIMINAR UNA CITA =====
-function deleteCita(citaId) {
+function deleteCita(searchCriteria) {
   try {
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const range = sheet.getRange(DATA_RANGE);
+    const values = range.getValues();
+    
+    // Buscar la fila por nombre + fecha + hora
+    let rowIndex = -1;
+    for (let i = 0; i < values.length; i++) {
+      if (values[i][0] === searchCriteria.paciente && 
+          values[i][3] === searchCriteria.fecha && 
+          values[i][4] === searchCriteria.hora) {
+        rowIndex = i + 2; // +2 porque A2 es la primera fila de datos
+        break;
+      }
+    }
+    
+    if (rowIndex === -1) {
+      return returnError('Cita no encontrada para eliminar');
+    }
+    
+    // Eliminar la fila
+    sheet.deleteRow(rowIndex);
+    
     return returnSuccess({
-      message: 'Cita eliminada'
+      message: 'Cita eliminada correctamente',
+      rowIndex: rowIndex
     });
   } catch (error) {
     return returnError('Error al eliminar cita: ' + error.toString());

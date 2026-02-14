@@ -165,11 +165,11 @@ Esto hace la búsqueda más confiable.
 
 ## ✅ Estado Actual
 
-Por ahora, la app funciona así:
+La app ahora funciona así:
 
 - ✅ **Crear citas**: Funciona perfectamente, se guarda en Sheets
 - ⚠️ **Editar citas**: Solo actualiza localmente (no persiste)
-- ✅ **Eliminar citas**: Elimina localmente (no persiste)
+- ✅ **Eliminar citas**: ¡Ahora elimina permanentemente de Sheets! ✅
 - ✅ **Ver citas**: Carga desde Sheets correctamente
 
 ---

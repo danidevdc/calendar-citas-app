@@ -4,7 +4,7 @@ class SheetsAPIManager {
     constructor() {
         // ✅ SEGURIDAD: Solo usamos Google Apps Script
         // No se exponen credenciales sensibles en el cliente
-        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwTlwMyqmV59O2u74qD1Is0vYTkG2AWPEu10mJ2JHWMGh5-jp9u8bB_rcEbSEJ5SNoQA/exec';
+        this.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwo3tk97YuKd11ojUyGi9iMlJqRJmP9NRvGjWsKxlbbkHiLBsHn_PxGnQn_qNcLhEZH1w/exec';
         this.citas = [];
         
         // Verificar que la URL esté configurada
@@ -88,7 +88,7 @@ class SheetsAPIManager {
             fecha: row[3] || '',
             hora: row[4] || '',
             duracion: parseInt(row[5]) || 45,
-            tipo: row[6] || 'presencial',
+            estado: row[6] || 'pendiente',  // Columna G ahora es "Estado"
             notas: row[7] || '',
             timestamp: Date.now()
         }));
@@ -177,7 +177,7 @@ class SheetsAPIManager {
                 fecha: cita.fecha || '',
                 hora: cita.hora || '',
                 duracion: cita.duracion || 45,
-                tipo: cita.tipo || 'presencial',
+                estado: cita.estado || 'pendiente',
                 notas: cita.notas || ''
             });
 
@@ -226,13 +226,50 @@ class SheetsAPIManager {
     // ===== ELIMINAR CITA =====
     async deleteCita(citaId) {
         try {
-            this.citas = this.citas.filter(c => c.id !== citaId);
-            window.calendarManager?.updateCalendar(this.citas);
-            showToast('Cita eliminada', 'success');
-            return true;
+            // Buscar la cita a eliminar
+            const cita = this.citas.find(c => c.id === citaId);
+            if (!cita) {
+                showToast('⚠️ Cita no encontrada', 'error');
+                return false;
+            }
+
+            console.log('🗑️ Eliminando cita de Google Sheets...');
+
+            // Enviar petición de eliminación a Google Apps Script
+            const params = new URLSearchParams({
+                action: 'deleteCita',
+                paciente: cita.paciente,
+                fecha: cita.fecha,
+                hora: cita.hora
+            });
+
+            const url = `${this.APPS_SCRIPT_URL}?${params.toString()}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('📩 Respuesta de Google:', data);
+
+            if (data.success) {
+                // Eliminar localmente también
+                this.citas = this.citas.filter(c => c.id !== citaId);
+                window.calendarManager?.updateCalendar(this.citas);
+                showToast('✅ Cita eliminada de Google Sheets', 'success');
+                return true;
+            } else {
+                showToast('⚠️ ' + (data.error || 'Error al eliminar'), 'error');
+                return false;
+            }
         } catch (error) {
-            console.error('Error eliminando cita:', error);
-            showToast('Error al eliminar la cita', 'error');
+            console.error('❌ Error eliminando cita:', error);
+            showToast(`Error: ${error.message}`, 'error');
             return false;
         }
     }

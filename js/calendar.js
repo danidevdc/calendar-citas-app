@@ -84,11 +84,11 @@ class CalendarManager {
 
                 eventos.push({
                     id: cita.id,
-                    title: `${nombreCompleto} (${cita.tipo || 'presencial'})`,
+                    title: `${nombreCompleto} (${this.getEstadoLabel(cita.estado)})`,
                     start: startTime.toISOString(),
                     end: endTime.toISOString(),
-                    backgroundColor: this.getColorByType(cita.tipo),
-                    borderColor: this.getColorByType(cita.tipo),
+                    backgroundColor: this.getColorByEstado(cita.estado),
+                    borderColor: this.getColorByEstado(cita.estado),
                     extendedProps: cita
                 });
             } catch (error) {
@@ -100,14 +100,26 @@ class CalendarManager {
         return eventos;
     }
 
-    // ===== COLORES POR TIPO DE SESIÓN =====
-    getColorByType(tipo) {
+    // ===== COLORES POR ESTADO DE ASISTENCIA =====
+    getColorByEstado(estado) {
         const colors = {
-            presencial: '#667eea',
-            virtual: '#f5576c',
-            telefonica: '#4facfe'
+            'pendiente': '#667eea',    // Morado - Aún no sucede
+            'asistio': '#4ade80',      // Verde - Asistió
+            'no-asistio': '#f87171',   // Rojo - No asistió
+            'reprogramo': '#fbbf24'    // Amarillo - Reprogramó
         };
-        return colors[tipo] || colors.presencial;
+        return colors[estado] || colors.pendiente;
+    }
+
+    // ===== ETIQUETA LEGIBLE DEL ESTADO =====
+    getEstadoLabel(estado) {
+        const labels = {
+            'pendiente': 'Pendiente',
+            'asistio': 'Asistió',
+            'no-asistio': 'No Asistió',
+            'reprogramo': 'Reprogramó'
+        };
+        return labels[estado] || 'Pendiente';
     }
 
     // ===== MANEJAR CLICK EN EVENTO =====
@@ -193,7 +205,7 @@ class CalendarManager {
             document.getElementById('citaDate').value = cita.fecha;
             document.getElementById('citaTime').value = cita.hora;
             document.getElementById('citaDuration').value = cita.duracion;
-            document.getElementById('citaTipo').value = cita.tipo;
+            document.getElementById('citaEstado').value = cita.estado || 'pendiente';
             document.getElementById('citaNotas').value = cita.notas;
             deleteBtn.style.display = 'block';
         } else {
@@ -376,7 +388,7 @@ class CalendarManager {
         const fecha = document.getElementById('citaDate').value;
         const hora = document.getElementById('citaTime').value;
         const duracion = parseInt(document.getElementById('citaDuration').value);
-        const tipo = document.getElementById('citaTipo').value;
+        const estado = document.getElementById('citaEstado').value;
         const notas = document.getElementById('citaNotas').value.trim();
 
         if (!nombreCompleto || !carrera || !fecha || !hora) {
@@ -423,7 +435,7 @@ class CalendarManager {
             fecha,
             hora,
             duracion,
-            tipo,
+            estado,
             notas,
             timestamp: Date.now()
         };
