@@ -80,7 +80,7 @@ class SheetsAPIManager {
 
     // ===== PARSEAR DATOS DEL SHEET =====
     parseCitas(values) {
-        return values.map((row, index) => ({
+        const citas = values.map((row, index) => ({
             id: `cita_${index}_${Date.now()}`,
             paciente: row[0] || '',
             apellido: row[1] || '',
@@ -91,14 +91,73 @@ class SheetsAPIManager {
             tipo: row[6] || 'presencial',
             notas: row[7] || '',
             timestamp: Date.now()
-        })).filter(cita => cita.paciente && cita.fecha);
+        }));
+
+        // ✅ Filtrar citas con datos válidos y fechas/horas correctas
+        const citasValidas = citas.filter(cita => {
+            // Debe tener al menos paciente y fecha
+            if (!cita.paciente || !cita.fecha || !cita.hora) {
+                return false;
+            }
+
+            // Validar formato de fecha (YYYY-MM-DD)
+            const fechaRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!fechaRegex.test(cita.fecha)) {
+                console.warn(`⚠️ Fecha inválida ignorada: ${cita.fecha}`);
+                return false;
+            }
+
+            // Validar formato de hora (HH:MM)
+            const horaRegex = /^\d{1,2}:\d{2}$/;
+            if (!horaRegex.test(cita.hora)) {
+                console.warn(`⚠️ Hora inválida ignorada: ${cita.hora}`);
+                return false;
+            }
+
+            // Validar que la fecha sea válida (no NaN)
+            const [year, month, day] = cita.fecha.split('-').map(Number);
+            const [hour, minute] = cita.hora.split(':').map(Number);
+            const testDate = new Date(year, month - 1, day, hour, minute);
+            
+            if (isNaN(testDate.getTime())) {
+                console.warn(`⚠️ Fecha/hora inválida ignorada: ${cita.fecha} ${cita.hora}`);
+                return false;
+            }
+
+            return true;
+        });
+
+        console.log(`✅ ${citasValidas.length} citas válidas de ${citas.length} filas`);
+        return citasValidas;
     }
 
     // ===== GUARDAR CITA EN SHEETS =====
-    async saveCita(cita) {
+    async saveCita(cita, isEditing = false) {
         try {
-            // ✅ Solo usar Google Apps Script (seguro)
-            return await this.saveCitaViaAppsScript(cita);
+            if (isEditing) {
+                // 🔄 Si es edición, actualizar solo localmente
+                // (Google Sheets no soporta edición fácil de filas específicas)
+                console.log('✏️ Editando cita localmente...');
+                
+                const index = this.citas.findIndex(c => c.id === cita.id);
+                if (index !== -1) {
+                    this.citas[index] = cita;
+                    window.calendarManager?.updateCalendar(this.citas);
+                    showToast('✅ Cita actualizada (solo local)', 'success');
+                    
+                    if (typeof window.celebrateSuccess === 'function') {
+                        window.celebrateSuccess();
+                    }
+                    
+                    return true;
+                } else {
+                    showToast('⚠️ No se encontró la cita para editar', 'error');
+                    return false;
+                }
+            } else {
+                // ➕ Nueva cita - guardar en Google Sheets
+                return await this.saveCitaViaAppsScript(cita);
+            }
         } catch (error) {
             console.error('Error guardando cita:', error);
             showToast('Error al guardar la cita', 'error');
@@ -141,7 +200,7 @@ class SheetsAPIManager {
             if (data.success) {
                 this.citas.push(cita);
                 window.calendarManager?.updateCalendar(this.citas);
-                showToast('Cita guardada correctamente', 'success');
+                showToast('✅ Cita guardada en Google Sheets', 'success');
                 
                 // Limpiar mocks al guardar datos reales
                 localStorage.removeItem('calendarMockData');

@@ -56,25 +56,48 @@ class CalendarManager {
 
     // ===== CONVERTIR CITAS A EVENTOS DEL CALENDARIO =====
     formatEventsForCalendar(citas) {
-        return citas.map(cita => {
-            const [year, month, day] = cita.fecha.split('-');
-            const [hour, minute] = cita.hora.split(':');
-            const startTime = new Date(year, month - 1, day, hour, minute);
-            const endTime = new Date(startTime.getTime() + cita.duracion * 60000);
+        const eventos = [];
+        
+        for (const cita of citas) {
+            try {
+                // Validar que existan fecha y hora
+                if (!cita.fecha || !cita.hora) {
+                    console.warn('⚠️ Cita sin fecha/hora:', cita);
+                    continue;
+                }
 
-            // Mostrar nombre completo en el calendario
-            const nombreCompleto = cita.apellido ? `${cita.paciente} ${cita.apellido}` : cita.paciente;
+                const [year, month, day] = cita.fecha.split('-').map(Number);
+                const [hour, minute] = cita.hora.split(':').map(Number);
+                
+                // Crear fechas y validar
+                const startTime = new Date(year, month - 1, day, hour, minute);
+                
+                if (isNaN(startTime.getTime())) {
+                    console.warn('⚠️ Fecha inválida ignorada:', cita.fecha, cita.hora);
+                    continue;
+                }
+                
+                const endTime = new Date(startTime.getTime() + (cita.duracion || 45) * 60000);
 
-            return {
-                id: cita.id,
-                title: `${nombreCompleto} (${cita.tipo})`,
-                start: startTime.toISOString(),
-                end: endTime.toISOString(),
-                backgroundColor: this.getColorByType(cita.tipo),
-                borderColor: this.getColorByType(cita.tipo),
-                extendedProps: cita
-            };
-        });
+                // Mostrar nombre completo en el calendario
+                const nombreCompleto = cita.apellido ? `${cita.paciente} ${cita.apellido}` : cita.paciente;
+
+                eventos.push({
+                    id: cita.id,
+                    title: `${nombreCompleto} (${cita.tipo || 'presencial'})`,
+                    start: startTime.toISOString(),
+                    end: endTime.toISOString(),
+                    backgroundColor: this.getColorByType(cita.tipo),
+                    borderColor: this.getColorByType(cita.tipo),
+                    extendedProps: cita
+                });
+            } catch (error) {
+                console.error('❌ Error procesando cita:', cita, error);
+                // Continuar con la siguiente cita
+            }
+        }
+        
+        return eventos;
     }
 
     // ===== COLORES POR TIPO DE SESIÓN =====
@@ -405,7 +428,9 @@ class CalendarManager {
             timestamp: Date.now()
         };
 
-        const success = await sheetsAPI.saveCita(cita);
+        // 🔄 Detectar si es edición o nueva cita
+        const isEditing = this.editingCita !== null;
+        const success = await sheetsAPI.saveCita(cita, isEditing);
 
         if (success) {
             document.getElementById('citaModal').classList.remove('active');
