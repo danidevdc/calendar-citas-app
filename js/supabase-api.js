@@ -147,26 +147,19 @@ class SupabaseAPIManager {
     // ===== ELIMINAR CITA =====
     async deleteCita(id) {
         try {
-            console.log('🗑️ Eliminando cita con ID:', id);
-
             const result = await window.supabase.delete('citas1', id);
-            console.log('📊 Respuesta de Supabase delete:', result);
 
             // Supabase puede retornar un array con los datos eliminados o { success: true }
             if (result && (result.success === true || Array.isArray(result))) {
                 // Eliminar del array local
-                const citaEliminada = this.citas.find(c => c.id === id);
                 this.citas = this.citas.filter(c => c.id !== id);
                 window.calendarManager?.updateCalendar(this.citas);
-                console.log('✅ Cita eliminada del array local:', citaEliminada);
                 return true;
             }
 
-            console.warn('⚠️ Supabase delete no retornó success ni array');
             return false;
         } catch (error) {
             console.error('❌ Error eliminando cita:', error);
-            console.error('❌ Stack:', error.stack);
             return false;
         }
     }

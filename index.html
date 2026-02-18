@@ -79,6 +79,9 @@
                 <a href="stats.html" class="btn btn-info" data-tooltip="Ver estadísticas" style="text-decoration: none;">
                     <i class="fas fa-chart-line"></i> Estadísticas
                 </a>
+                <button id="configHolidaysBtn" class="btn btn-warning" data-tooltip="Configurar días feriados">
+                    <i class="fas fa-calendar-times"></i> Feriados
+                </button>
                 <button id="addCitaBtn" class="btn btn-success" data-tooltip="Agregar nueva cita">
                     <i class="fas fa-plus"></i> Nueva Cita
                 </button>
@@ -197,6 +200,58 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURACIÓN DE FERIADOS -->
+    <div id="holidaysModal" class="modal">
+        <div class="modal-content holidays-modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-times"></i> Configurar Días Feriados</h2>
+                <button class="close-btn" id="closeHolidaysBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="holidays-content">
+                <div class="holidays-form">
+                    <h3><i class="fas fa-plus-circle"></i> Agregar Feriado</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="holidayDate">
+                                <i class="fas fa-calendar-day"></i> Fecha
+                            </label>
+                            <input type="date" id="holidayDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="holidayName">
+                                <i class="fas fa-tag"></i> Nombre
+                            </label>
+                            <input type="text" id="holidayName" placeholder="Ej: Año Nuevo" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="holidayRecurring">
+                            Se repite cada año
+                        </label>
+                    </div>
+                    <button id="addHolidayBtn" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Agregar Feriado
+                    </button>
+                </div>
+
+                <div class="holidays-list">
+                    <h3><i class="fas fa-list"></i> Feriados Configurados</h3>
+                    <div id="holidaysList" class="holidays-items">
+                        <!-- Los feriados se cargan dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="closeHolidaysModalBtn" class="btn btn-secondary">Cerrar</button>
+            </div>
         </div>
     </div>
 

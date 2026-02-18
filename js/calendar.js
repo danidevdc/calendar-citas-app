@@ -410,10 +410,8 @@ class CalendarManager {
 
         deleteBtn.addEventListener('click', async () => {
             if (this.editingCita && confirm('¿Eliminar esta cita?')) {
-                // ✅ Guardar ID antes de cerrar
                 const citaId = this.editingCita.id;
                 
-                // ✅ Cerrar modal inmediatamente para mejor UX
                 document.getElementById('citaModal').classList.remove('active');
                 this.editingCita = null;
                 
@@ -421,11 +419,9 @@ class CalendarManager {
                 
                 try {
                     const success = await sheetsAPI.deleteCita(citaId);
-                    console.log('📊 Resultado de deleteCita:', success);
                     
                     if (success) {
                         showToast('✅ Cita eliminada correctamente', 'success');
-                        // Recargar todas las citas desde Supabase para asegurar sincronización
                         await sheetsAPI.loadCitas();
                     } else {
                         showToast('⚠️ No se pudo eliminar la cita', 'error');
