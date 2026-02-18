@@ -152,7 +152,8 @@ class SupabaseAPIManager {
             const result = await window.supabase.delete('citas1', id);
             console.log('📊 Respuesta de Supabase delete:', result);
 
-            if (result && result.success) {
+            // Supabase puede retornar un array con los datos eliminados o { success: true }
+            if (result && (result.success === true || Array.isArray(result))) {
                 // Eliminar del array local
                 const citaEliminada = this.citas.find(c => c.id === id);
                 this.citas = this.citas.filter(c => c.id !== id);
@@ -161,7 +162,7 @@ class SupabaseAPIManager {
                 return true;
             }
 
-            console.warn('⚠️ Supabase delete no retornó success');
+            console.warn('⚠️ Supabase delete no retornó success ni array');
             return false;
         } catch (error) {
             console.error('❌ Error eliminando cita:', error);
