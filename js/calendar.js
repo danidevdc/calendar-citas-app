@@ -375,11 +375,6 @@ class CalendarManager {
             this.calendar.today();
         });
 
-        // Sincronizar ahora
-        document.getElementById('syncNowBtn').addEventListener('click', () => {
-            this.syncNow();
-        });
-
         // Nueva cita
         document.getElementById('addCitaBtn').addEventListener('click', () => {
             this.editingCita = null;
@@ -709,24 +704,6 @@ class CalendarManager {
         }, 5 * 60 * 1000);
     }
 
-    // ===== SINCRONIZAR AHORA (MANUAL) =====
-    async syncNow() {
-        const syncBtn = document.getElementById('syncNowBtn');
-        const icon = syncBtn.querySelector('i');
-        
-        // Animar el botón
-        icon.classList.add('fa-spin');
-        syncBtn.disabled = true;
-        
-        // Sincronizar
-        await sheetsAPI.loadCitas();
-        
-        // Restaurar botón
-        setTimeout(() => {
-            icon.classList.remove('fa-spin');
-            syncBtn.disabled = false;
-        }, 500);
-    }
 }
 
 // Inicializar calendar manager cuando esté lista la app
