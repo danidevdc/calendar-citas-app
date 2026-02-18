@@ -66,33 +66,34 @@
             </button>
         </div>
 
-        <!-- CONTROLES -->
-        <div class="controls">
-            <div class="view-toggle">
-                <button id="monthViewBtn" class="view-btn active" data-tooltip="Vista mensual">
-                    <i class="fas fa-calendar-grid"></i> Mes
-                </button>
-                <button id="weekViewBtn" class="view-btn" data-tooltip="Vista semanal">
-                    <i class="fas fa-calendar-week"></i> Semana
-                </button>
-            </div>
-
-            <div class="actions">
-                <button id="todayBtn" class="btn btn-info" data-tooltip="Ir a hoy">
-                    <i class="fas fa-calendar-check"></i> Hoy
-                </button>
-                <button id="prevBtn" class="btn btn-nav" data-tooltip="Mes anterior">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button id="nextBtn" class="btn btn-nav" data-tooltip="Mes siguiente">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <span id="monthYear" class="month-year"></span>
-            </div>
-        </div>
-
-        <!-- CALENDARIO -->
+        <!-- CALENDARIO CON CONTROLES INTEGRADOS -->
         <div class="calendar-container">
+            <!-- CONTROLES DE NAVEGACIÓN -->
+            <div class="calendar-controls">
+                <div class="view-toggle">
+                    <button id="monthViewBtn" class="view-btn active" data-tooltip="Vista mensual">
+                        <i class="fas fa-calendar-grid"></i> Mes
+                    </button>
+                    <button id="weekViewBtn" class="view-btn" data-tooltip="Vista semanal">
+                        <i class="fas fa-calendar-week"></i> Semana
+                    </button>
+                </div>
+
+                <div class="calendar-navigation">
+                    <button id="todayBtn" class="btn btn-info" data-tooltip="Ir a hoy">
+                        <i class="fas fa-calendar-check"></i> Hoy
+                    </button>
+                    <button id="prevBtn" class="btn btn-nav" data-tooltip="Anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="monthYear" class="month-year"></span>
+                    <button id="nextBtn" class="btn btn-nav" data-tooltip="Siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- CALENDARIO -->
             <div id="calendar"></div>
         </div>
 
