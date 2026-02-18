@@ -25,11 +25,15 @@ class CalendarManager {
         this.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: this.currentView,
             locale: 'es',
-            firstDay: 1, // ✅ Comenzar la semana en lunes (más estándar en España/Latinoamérica)
+            firstDay: 1, // ✅ Comenzar la semana en lunes
             headerToolbar: false, // Usamos nuestros propios controles
             height: 'auto',
             contentHeight: 'auto',
-            allDaySlot: false, // Ocultar la fila "all day"
+            allDaySlot: false,
+            
+            // ✅ OCULTAR FINES DE SEMANA (Sábado y Domingo)
+            weekends: false,
+            
             // Configuración de horario para vista semanal
             slotMinTime: '08:00:00',
             slotMaxTime: '17:00:00',
@@ -40,6 +44,12 @@ class CalendarManager {
                 minute: '2-digit',
                 hour12: false
             },
+            
+            // ✅ Optimización para móvil
+            dayMaxEvents: true,
+            navLinks: false,
+            editable: false,
+            
             events: (info, successCallback, failureCallback) => {
                 const events = this.formatEventsForCalendar(this.citas);
                 successCallback(events);
