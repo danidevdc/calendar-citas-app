@@ -168,6 +168,12 @@ class CalendarManager {
                 showToast('No puedes agendar citas en fines de semana', 'error');
                 return;
             }
+
+            // ✅ Validar que el día no esté totalmente ocupado
+            if (this.isDayFullyBooked(dateStr)) {
+                showToast('❌ Este día ya tiene todas las horas ocupadas', 'error');
+                return;
+            }
             
             const modal = document.getElementById('citaModal');
             const title = document.getElementById('citaTitle');
@@ -184,6 +190,9 @@ class CalendarManager {
             document.getElementById('citaTime').value = timeStr;
             document.getElementById('citaDuration').value = '45';
             document.getElementById('deleteCitaBtn').style.display = 'none';
+
+            // ✅ Actualizar horas disponibles
+            this.updateAvailableHours();
 
             modal.classList.add('active');
         }
@@ -219,6 +228,11 @@ class CalendarManager {
 
         modal.classList.add('active');
         
+        // ✅ Actualizar horas disponibles
+        setTimeout(() => {
+            this.updateAvailableHours();
+        }, 50);
+        
         // Detectar si el modal tiene contenido que necesita scroll
         setTimeout(() => {
             const modalContent = modal.querySelector('.modal-content');
@@ -253,6 +267,12 @@ class CalendarManager {
         const dayOfWeek = cellDate.getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) {
             classes.push('fc-day-weekend');
+        }
+
+        // ✅ Marcar días totalmente ocupados
+        const dateStr = info.date.toISOString().split('T')[0];
+        if (this.isDayFullyBooked(dateStr) && cellDate >= today) {
+            classes.push('fc-day-fully-booked');
         }
         
         return classes;
@@ -371,18 +391,36 @@ class CalendarManager {
     setupCitaForm() {
         const form = document.getElementById('citaForm');
         const deleteBtn = document.getElementById('deleteCitaBtn');
+        const citaDateInput = document.getElementById('citaDate');
+        const citaTimeInput = document.getElementById('citaTime');
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveCita();
         });
 
-        deleteBtn.addEventListener('click', () => {
+        deleteBtn.addEventListener('click', async () => {
             if (this.editingCita && confirm('¿Eliminar esta cita?')) {
-                sheetsAPI.deleteCita(this.editingCita.id);
-                document.getElementById('citaModal').classList.remove('active');
-                this.editingCita = null;
+                const success = await sheetsAPI.deleteCita(this.editingCita.id);
+                
+                if (success) {
+                    document.getElementById('citaModal').classList.remove('active');
+                    this.editingCita = null;
+                    
+                    // ✅ Actualización automática mejorada
+                    showToast('🗑️ Cita eliminada correctamente', 'success');
+                    
+                    // Recargar citas y actualizar calendario
+                    setTimeout(() => {
+                        this.updateCalendar(sheetsAPI.citas);
+                    }, 300);
+                }
             }
+        });
+
+        // ✅ Detectar cambios en la fecha para actualizar horas disponibles
+        citaDateInput.addEventListener('change', () => {
+            this.updateAvailableHours();
         });
     }
 
@@ -423,6 +461,12 @@ class CalendarManager {
         if (typeof isHoliday === 'function' && isHoliday(citaDateTime)) {
             const holidayName = typeof getHolidayName === 'function' ? getHolidayName(citaDateTime) : 'día feriado';
             showToast(`No puedes agendar citas en ${holidayName}`, 'error');
+            return;
+        }
+
+        // ✅ Validar que la hora esté disponible
+        if (!this.isTimeSlotAvailable(fecha, hora, duracion)) {
+            showToast('❌ Esta hora ya está ocupada. Por favor selecciona otra hora disponible', 'error');
             return;
         }
 
@@ -478,6 +522,135 @@ class CalendarManager {
         if (this.calendar) {
             this.calendar.refetchEvents();
         }
+    }
+
+    // ===== 🆕 OBTENER HORAS OCUPADAS EN UNA FECHA =====
+    getOccupiedHours(fecha) {
+        if (!fecha || !this.citas) return [];
+
+        const citasDelDia = this.citas.filter(cita => cita.fecha === fecha);
+        const horasOcupadas = [];
+
+        citasDelDia.forEach(cita => {
+            if (cita.hora) {
+                const [hora, minuto] = cita.hora.split(':');
+                const duracion = cita.duracion || 45;
+
+                // Calcular inicio y fin del slot
+                const inicioMinutos = parseInt(hora) * 60 + parseInt(minuto);
+                const finMinutos = inicioMinutos + duracion;
+
+                // Agregar todos los bloques de 30 minutos ocupados
+                for (let t = inicioMinutos; t < finMinutos; t += 30) {
+                    const h = Math.floor(t / 60);
+                    const m = t % 60;
+                    const horaStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                    if (!horasOcupadas.includes(horaStr)) {
+                        horasOcupadas.push(horaStr);
+                    }
+                }
+            }
+        });
+
+        return horasOcupadas;
+    }
+
+    // ===== 🆕 VERIFICAR SI UN DÍA ESTÁ TOTALMENTE OCUPADO =====
+    isDayFullyBooked(fecha) {
+        const horasLaborales = [
+            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+            '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+        ];
+
+        const horasOcupadas = this.getOccupiedHours(fecha);
+        
+        // Verificar si todas las horas laborales están ocupadas
+        const horasDisponibles = horasLaborales.filter(hora => !horasOcupadas.includes(hora));
+        
+        return horasDisponibles.length === 0;
+    }
+
+    // ===== 🆕 ACTUALIZAR HORAS DISPONIBLES EN EL SELECTOR =====
+    updateAvailableHours() {
+        const dateInput = document.getElementById('citaDate');
+        const timeInput = document.getElementById('citaTime');
+        
+        if (!dateInput || !timeInput) return;
+
+        const selectedDate = dateInput.value;
+        if (!selectedDate) return;
+
+        const horasOcupadas = this.getOccupiedHours(selectedDate);
+        const horaActual = timeInput.value;
+
+        // Eliminar datalist anterior si existe
+        let datalist = document.getElementById('horasDisponibles');
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = 'horasDisponibles';
+            timeInput.parentNode.appendChild(datalist);
+            timeInput.setAttribute('list', 'horasDisponibles');
+        }
+
+        // Limpiar opciones anteriores
+        datalist.innerHTML = '';
+
+        // Horario laboral: 8:00 AM a 5:00 PM
+        const horasLaborales = [
+            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+            '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+        ];
+
+        // Agregar solo horas disponibles
+        horasLaborales.forEach(hora => {
+            const isOcupada = horasOcupadas.includes(hora);
+            const isEditing = this.editingCita && this.editingCita.hora === hora;
+            
+            // Permitir la hora actual si estamos editando esa cita
+            if (!isOcupada || isEditing) {
+                const option = document.createElement('option');
+                option.value = hora;
+                option.textContent = hora;
+                datalist.appendChild(option);
+            }
+        });
+
+        // Mostrar mensaje si hay horas ocupadas
+        if (horasOcupadas.length > 0 && !this.editingCita) {
+            const ocupadasText = horasOcupadas.slice(0, 3).join(', ');
+            const masText = horasOcupadas.length > 3 ? ` (+${horasOcupadas.length - 3} más)` : '';
+            console.log(`⚠️ Horas ocupadas: ${ocupadasText}${masText}`);
+        }
+    }
+
+    // ===== 🆕 VERIFICAR SI UNA HORA ESTÁ DISPONIBLE =====
+    isTimeSlotAvailable(fecha, hora, duracion = 45) {
+        if (!fecha || !hora) return true;
+
+        // Si estamos editando, permitir la hora actual de la cita
+        if (this.editingCita && this.editingCita.fecha === fecha && this.editingCita.hora === hora) {
+            return true;
+        }
+
+        const horasOcupadas = this.getOccupiedHours(fecha);
+        const [h, m] = hora.split(':').map(Number);
+        const inicioMinutos = h * 60 + m;
+        const finMinutos = inicioMinutos + duracion;
+
+        // Verificar cada bloque de 30 minutos del slot solicitado
+        for (let t = inicioMinutos; t < finMinutos; t += 30) {
+            const horaCheck = Math.floor(t / 60);
+            const minCheck = t % 60;
+            const horaStr = `${horaCheck.toString().padStart(2, '0')}:${minCheck.toString().padStart(2, '0')}`;
+            
+            if (horasOcupadas.includes(horaStr)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ===== AUTO SYNC =====
