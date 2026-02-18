@@ -184,9 +184,13 @@ class CalendarManager {
             this.editingCita = null;
 
             // Usar la fecha ya parseada
-            const timeStr = info.dateStr.includes('T') ? info.dateStr.split('T')[1].substring(0, 5) : '09:00';
-            
             document.getElementById('citaDate').value = dateStr;
+            
+            // ✅ Si viene con hora específica (vista semanal), usarla; si no, primera hora disponible
+            const timeStr = info.dateStr.includes('T') 
+                ? info.dateStr.split('T')[1].substring(0, 5) 
+                : this.getFirstAvailableHour(dateStr);
+            
             document.getElementById('citaTime').value = timeStr;
             document.getElementById('citaDuration').value = '45';
             document.getElementById('deleteCitaBtn').style.display = 'none';
@@ -220,7 +224,12 @@ class CalendarManager {
         } else {
             title.textContent = 'Nueva Cita';
             form.reset();
-            document.getElementById('citaTime').value = '09:00';
+            
+            // ✅ Establecer primera hora disponible por defecto
+            const fechaSeleccionada = document.getElementById('citaDate').value;
+            const horaDisponible = this.getFirstAvailableHour(fechaSeleccionada);
+            document.getElementById('citaTime').value = horaDisponible;
+            
             document.getElementById('citaDuration').value = '45';
             deleteBtn.style.display = 'none';
             this.editingCita = null;
@@ -401,15 +410,19 @@ class CalendarManager {
 
         deleteBtn.addEventListener('click', async () => {
             if (this.editingCita && confirm('¿Eliminar esta cita?')) {
-                const success = await sheetsAPI.deleteCita(this.editingCita.id);
+                // ✅ Guardar ID antes de cerrar
+                const citaId = this.editingCita.id;
+                
+                // ✅ Cerrar modal inmediatamente para mejor UX
+                document.getElementById('citaModal').classList.remove('active');
+                this.editingCita = null;
+                
+                showToast('🗑️ Eliminando cita...', 'info');
+                
+                const success = await sheetsAPI.deleteCita(citaId);
                 
                 if (success) {
-                    document.getElementById('citaModal').classList.remove('active');
-                    this.editingCita = null;
-                    
-                    // ✅ Actualización automática mejorada
-                    showToast('🗑️ Cita eliminada correctamente', 'success');
-                    
+                    showToast('✅ Cita eliminada correctamente', 'success');
                     // Recargar citas y actualizar calendario
                     setTimeout(() => {
                         this.updateCalendar(sheetsAPI.citas);
@@ -522,6 +535,29 @@ class CalendarManager {
         if (this.calendar) {
             this.calendar.refetchEvents();
         }
+    }
+
+    // ===== 🆕 OBTENER PRIMERA HORA DISPONIBLE =====
+    getFirstAvailableHour(fecha) {
+        const horasLaborales = [
+            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+            '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+        ];
+
+        if (!fecha) return horasLaborales[0]; // Retornar 08:00 si no hay fecha
+
+        const horasOcupadas = this.getOccupiedHours(fecha);
+        
+        // Buscar la primera hora disponible
+        for (const hora of horasLaborales) {
+            if (!horasOcupadas.includes(hora)) {
+                return hora;
+            }
+        }
+        
+        // Si todas están ocupadas, retornar la primera de todas formas (el sistema validará)
+        return horasLaborales[0];
     }
 
     // ===== 🆕 OBTENER HORAS OCUPADAS EN UNA FECHA =====
