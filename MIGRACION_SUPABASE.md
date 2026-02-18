@@ -59,7 +59,7 @@ Una vez creado el proyecto:
 1. Ve a **"Table Editor"** (icono de tabla en el menú)
 2. Click **"Create a new table"**
 3. Configura:
-   - **Name**: `citas`
+   - **Name**: `citas1`
    - **Enable Row Level Security (RLS)**: ✅ **ACTIVAR**
 
 4. Agrega estas columnas (click en "+" para cada una):
@@ -83,7 +83,7 @@ Una vez creado el proyecto:
 ### 3. Configurar Permisos (RLS)
 
 1. Ve a **"Authentication"** > **"Policies"**
-2. Selecciona la tabla `citas`
+2. Selecciona la tabla `citas1`
 3. Click **"New Policy"**
 4. Llena:
    - **Policy name**: `Allow all operations`
@@ -151,7 +151,7 @@ Si tienes citas en Google Sheets que quieres mantener:
 
 1. Abre tu hoja de Google Sheets
 2. Descarga como CSV
-3. Ve a Supabase > Table Editor > `citas` > **"Import data"**
+3. Ve a Supabase > Table Editor > `citas1` > **"Import data"**
 4. Sube el CSV
 
 ---
@@ -180,7 +180,7 @@ Puedes gestionar tus citas directamente desde Supabase:
 
 1. Ve a [app.supabase.com](https://app.supabase.com)
 2. Selecciona tu proyecto
-3. Ve a **"Table Editor"** > `citas`
+3. Ve a **"Table Editor"** > `citas1`
 4. Puedes:
    - Ver todas las citas
    - Editar cualquier campo
@@ -213,7 +213,7 @@ Ahora puedes acceder desde cualquier dispositivo:
 ### ❌ "No se cargan las citas"
 - Abre la consola del navegador (F12)
 - Revisa si hay errores en rojo
-- Verifica que la tabla se llame exactamente `citas` (minúsculas)
+- Verifica que la tabla se llame exactamente `citas1` (minúsculas)
 
 ### ❌ "Las estadísticas están en blanco"
 - Asegúrate de tener al menos algunas citas guardadas

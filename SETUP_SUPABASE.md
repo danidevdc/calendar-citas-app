@@ -28,7 +28,7 @@
 1. En el panel de Supabase, ve a **"Table Editor"** (icono de tabla)
 2. Click **"Create a new table"**
 3. Configura:
-   - **Name**: `citas`
+   - **Name**: `citas1`
    - **Enable Row Level Security (RLS)**: ✅ ACTIVAR (por seguridad)
 4. Agrega las siguientes columnas (click "+"):
 
@@ -53,7 +53,7 @@
 ## 🔐 Paso 3: Configurar Políticas de Seguridad (RLS)
 
 1. Ve a **"Authentication"** > **"Policies"** en el menú
-2. Selecciona la tabla `citas`
+2. Selecciona la tabla `citas1`
 3. Click **"New Policy"**
 4. Configuración:
    - **Policy name**: `Allow all operations`
@@ -106,7 +106,7 @@ Tu aplicación ahora usará Supabase en lugar de Google Sheets.
 - ✅ Panel de administración profesional
 
 **Para ver tus datos:**
-- Ve a Supabase > Table Editor > `citas`
+- Ve a Supabase > Table Editor > `citas1`
 - Puedes editar, agregar o eliminar citas directamente
 
 **Estadísticas:**
@@ -119,7 +119,7 @@ Tu aplicación ahora usará Supabase en lugar de Google Sheets.
 
 Si tienes citas en Google Sheets que quieres migrar:
 
-1. Ve a Supabase > Table Editor > `citas`
+1. Ve a Supabase > Table Editor > `citas1`
 2. Click en **"Insert"** > **"Insert row"**
 3. O usa el script de migración: `js/migrate-from-sheets.js`
 

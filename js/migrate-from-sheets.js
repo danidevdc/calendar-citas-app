@@ -112,7 +112,7 @@ async function migrarDesdeSheetsASupabase() {
             const cita = citasConvertidas[i];
             
             try {
-                const result = await window.supabase.insert('citas', cita);
+                const result = await window.supabase.insert('citas1', cita);
                 
                 if (result && result.length > 0) {
                     exitosas++;
@@ -184,7 +184,7 @@ async function migrarDesdeArray(citasArray) {
         };
 
         try {
-            const result = await window.supabase.insert('citas', citaCompleta);
+            const result = await window.supabase.insert('citas1', cita);
             
             if (result && result.length > 0) {
                 exitosas++;

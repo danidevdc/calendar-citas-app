@@ -22,7 +22,7 @@ class SupabaseAPIManager {
         try {
             console.log('📥 Cargando citas desde Supabase...');
 
-            const data = await window.supabase.select('citas', {
+            const data = await window.supabase.select('citas1', {
                 order: 'fecha.desc,hora.desc'
             });
 
@@ -86,7 +86,7 @@ class SupabaseAPIManager {
                 timestamp: Date.now()
             };
 
-            const result = await window.supabase.insert('citas', supabaseData);
+            const result = await window.supabase.insert('citas1', supabaseData);
 
             if (result && result.length > 0) {
                 const nuevaCita = this.formatCita(result[0]);
@@ -122,7 +122,7 @@ class SupabaseAPIManager {
                 notas: citaData.notas || ''
             };
 
-            const result = await window.supabase.update('citas', id, updateData);
+            const result = await window.supabase.update('citas1', id, updateData);
 
             if (result && result.length > 0) {
                 // Actualizar en el array local
@@ -149,7 +149,7 @@ class SupabaseAPIManager {
         try {
             console.log('🗑️ Eliminando cita...', id);
 
-            const result = await window.supabase.delete('citas', id);
+            const result = await window.supabase.delete('citas1', id);
 
             if (result.success) {
                 // Eliminar del array local
