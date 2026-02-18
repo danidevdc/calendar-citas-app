@@ -419,14 +419,20 @@ class CalendarManager {
                 
                 showToast('🗑️ Eliminando cita...', 'info');
                 
-                const success = await sheetsAPI.deleteCita(citaId);
-                
-                if (success) {
-                    showToast('✅ Cita eliminada correctamente', 'success');
-                    // Recargar citas y actualizar calendario
-                    setTimeout(() => {
-                        this.updateCalendar(sheetsAPI.citas);
-                    }, 300);
+                try {
+                    const success = await sheetsAPI.deleteCita(citaId);
+                    console.log('📊 Resultado de deleteCita:', success);
+                    
+                    if (success) {
+                        showToast('✅ Cita eliminada correctamente', 'success');
+                        // Recargar todas las citas desde Supabase para asegurar sincronización
+                        await sheetsAPI.loadCitas();
+                    } else {
+                        showToast('⚠️ No se pudo eliminar la cita', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Error al eliminar:', error);
+                    showToast('❌ Error al eliminar la cita', 'error');
                 }
             }
         });
@@ -540,9 +546,9 @@ class CalendarManager {
     // ===== 🆕 OBTENER PRIMERA HORA DISPONIBLE =====
     getFirstAvailableHour(fecha) {
         const horasLaborales = [
-            '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+            '08:30', '09:00', '09:30', '10:00', '10:30',
             '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+            '14:00', '14:30', '15:00'
         ];
 
         if (!fecha) return horasLaborales[0]; // Retornar 08:00 si no hay fecha

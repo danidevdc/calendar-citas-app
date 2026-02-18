@@ -147,23 +147,25 @@ class SupabaseAPIManager {
     // ===== ELIMINAR CITA =====
     async deleteCita(id) {
         try {
-            console.log('🗑️ Eliminando cita...', id);
+            console.log('🗑️ Eliminando cita con ID:', id);
 
             const result = await window.supabase.delete('citas1', id);
+            console.log('📊 Respuesta de Supabase delete:', result);
 
-            if (result.success) {
+            if (result && result.success) {
                 // Eliminar del array local
+                const citaEliminada = this.citas.find(c => c.id === id);
                 this.citas = this.citas.filter(c => c.id !== id);
                 window.calendarManager?.updateCalendar(this.citas);
-                console.log('✅ Cita eliminada');
-                showToast('✅ Cita eliminada', 'success');
+                console.log('✅ Cita eliminada del array local:', citaEliminada);
                 return true;
             }
 
+            console.warn('⚠️ Supabase delete no retornó success');
             return false;
         } catch (error) {
             console.error('❌ Error eliminando cita:', error);
-            showToast(`Error: ${error.message}`, 'error');
+            console.error('❌ Stack:', error.stack);
             return false;
         }
     }
