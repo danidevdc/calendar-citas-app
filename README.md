@@ -2,6 +2,14 @@
 
 Aplicación web para gestionar citas de pacientes con sincronización a Google Sheets, vistas de calendario (mes/semana) y sistema de autenticación.
 
+## English overview
+
+A web application for scheduling appointments, with month and week calendar views, configurable non-working days and Google Sheets integration.
+
+**Technologies:** HTML, CSS, JavaScript and Google Apps Script.
+
+**Portfolio focus:** calendar workflows, appointment organization and spreadsheet integration.
+
 ## ✨ Características
 
 - 📆 **Vistas de Calendario**: Mes y semana
@@ -17,7 +25,7 @@ Aplicación web para gestionar citas de pacientes con sincronización a Google S
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone https://github.com/tuusuario/calendar-citas-app.git
+git clone https://github.com/danidevdc/calendar-citas-app.git
 cd calendar-citas-app
 ```
 
@@ -106,7 +114,7 @@ this.APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL_AQUI';
 2. Ve a **Settings** > **Pages**
 3. Selecciona **Deploy from a branch**
 4. Elige **main** como rama
-5. ¡Listo! Tu app estará disponible en `https://tuusuario.github.io/calendar-citas-app`
+5. ¡Listo! Tu app estará disponible en `https://danidevdc.github.io/calendar-citas-app`
 
 ## 🔒 Seguridad
 
@@ -205,7 +213,7 @@ Este proyecto está bajo la licencia MIT. Ver `LICENSE` para más detalles.
 
 Si tienes preguntas o necesitas ayuda:
 
-- Abre un [Issue](https://github.com/tuusuario/calendar-citas-app/issues)
+- Abre un [Issue](https://github.com/danidevdc/calendar-citas-app/issues)
 - Revisa la [Documentación de FullCalendar](https://fullcalendar.io)
 - Consulta [Google Sheets API Docs](https://developers.google.com/sheets/api)
 
